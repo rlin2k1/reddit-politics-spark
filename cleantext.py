@@ -107,6 +107,34 @@ _CONTRACTIONS = {
 
 # You may need to write regular expressions.
 
+# Task 1
+def newlines_and_tabs_to_spaces(text):
+    pattern = '[\n\t]+'
+    replace = ' '
+    new_text = re.sub(pattern, replace, text)
+    return new_text
+    # print(newlines_and_tabs_to_spaces("hey\n\t\n\twassup\n"))
+
+# Task 5
+def split_single_space(text):
+    tokens = re.split(' ', text)
+    # Remove empty tokens
+    # Source: https://stackoverflow.com/questions/16099694/how-to-remove-empty-string-in-a-list/16099706
+    tokens = list(filter(None, tokens))
+    return tokens
+    # print(split_single_space("get some   tokens     man"))
+
+# Task 7
+def remove_punctuation(text):
+    # pattern = '(?![a-zA-Z0-9]+)[^a-zA-Z0-9 ]'
+    # pattern = '(?![a-zA-Z0-9])[^a-zA-Z0-9 ]+(?![ ]|$)'
+    # pattern = '(?![a-zA-Z0-9])[^a-zA-Z0-9 ](?![a-zA-Z0-9]| |$)'
+    # pattern = ' [^a-zA-Z0-9 ]+|^[^a-zA-Z0-9 ]+'
+    pattern = ' [^a-zA-Z0-9 ] '
+    replace = ' '
+    new_text = re.sub(pattern, replace, text)
+    return new_text
+
 def sanitize(text):
     """Do parse the text in variable "text" according to the spec, and return
     a LIST containing FOUR strings 
@@ -117,6 +145,10 @@ def sanitize(text):
     """
 
     # YOUR CODE GOES BELOW:
+
+    # TODO: Order of tasks: 8, 7, 6, 5 ?? <-- WRONG!
+    # TODO: Remove special characters (keep other punctuation)
+    # TODO: Double check punctuation symbols for separation
 
     return [parsed_text, unigrams, bigrams, trigrams]
 
@@ -133,3 +165,9 @@ if __name__ == "__main__":
 
     # We are "requiring" your write a main function so you can
     # debug your code. It will not be graded.
+
+    # print(newlines_and_tabs_to_spaces("hey\n\t\n\twassup\n"))
+    # print(split_single_space("get some   tokens     man"))
+    print(remove_punctuation(".. ,yo ;hey ! #$@ how are you?? app-le?!"))
+    print(remove_punctuation(". . , yo ; hey ! #$ how are you ? ? app-le ? ! ."))
+
