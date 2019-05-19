@@ -106,6 +106,18 @@ _CONTRACTIONS = {
 }
 
 # You may need to write regular expressions.
+def remove_url_2(text):
+    """
+    4 Regex Expressions Separated By '|'
+    1. Matches Brackets and (http://) Replaces With String in Brackets
+    2. Matches Brackets and (https://) Replaces with String in Brackets
+    3. Matches https:// Replaces With Empty String
+    4. Matches http:// Replaces With Empty String
+    """
+    return re.sub(r'\[([^)]*)]\(http://[^)]*\)|\[([^)]*)]\(https://[^)]*\)|https://([^\s]+)|http://([^\s]+)', r'\1\2', text)
+
+def separate_punctuation_6(text):
+    return re.sub(r"(?:(?<!\\S)([!?.;,:])|(?:([!?.;,:])(?!\\S)))", r' \1\2 ', text)
 
 # Task 1
 def newlines_and_tabs_to_spaces(text):
@@ -143,7 +155,7 @@ def sanitize(text):
     3. The bigrams
     4. The trigrams
     """
-
+    
     # YOUR CODE GOES BELOW:
 
     # TODO: Order of tasks: 8, 7, 6, 5 ?? <-- WRONG!
@@ -171,3 +183,11 @@ if __name__ == "__main__":
     print(remove_punctuation(".. ,yo ;hey ! #$@ how are you?? app-le?!"))
     print(remove_punctuation(". . , yo ; hey ! #$ how are you ? ? app-le ? ! ."))
 
+    print(separate_punctuation_6(".. ,yo ;hey ! #$@ how are you?? app-le?!"))
+    #print(remove_url_2((" wohttps://www.wsws.org/en/articles/2017/01/14/nsas-j1!?Don't.;, .:delete !the@ $actual string%4.html). His campaign didn't")))
+    # with open('sample.json') as fp:
+    #     line = fp.readline()
+    #     while line:
+    #         print(remove_url((line)))
+    #         line = fp.readline()
+    # fp.close()
