@@ -106,7 +106,16 @@ _CONTRACTIONS = {
 }
 
 # You may need to write regular expressions.
-def remove_url_2(text):
+# Task 1
+def newlines_and_tabs_to_spaces(text):
+    pattern = '[\n\t]+'
+    replace = ' '
+    new_text = re.sub(pattern, replace, text)
+    return new_text
+    # print(newlines_and_tabs_to_spaces("hey\n\t\n\twassup\n"))
+
+# Task 2
+def remove_url(text):
     """
     4 Regex Expressions Separated By '|'
     1. Matches Brackets and (http://) Replaces With String in Brackets
@@ -115,17 +124,6 @@ def remove_url_2(text):
     4. Matches http:// Replaces With Empty String
     """
     return re.sub(r'\[([^)]*)]\(http://[^)]*\)|\[([^)]*)]\(https://[^)]*\)|https://([^\s]+)|http://([^\s]+)', r'\1\2', text)
-
-def separate_punctuation_6(text):
-    return re.sub(r"(?:(?<!\\S)([!?.;,:])|(?:([!?.;,:])(?!\\S)))", r' \1\2 ', text)
-
-# Task 1
-def newlines_and_tabs_to_spaces(text):
-    pattern = '[\n\t]+'
-    replace = ' '
-    new_text = re.sub(pattern, replace, text)
-    return new_text
-    # print(newlines_and_tabs_to_spaces("hey\n\t\n\twassup\n"))
 
 # Task 5
 def split_single_space(text):
@@ -136,16 +134,29 @@ def split_single_space(text):
     return tokens
     # print(split_single_space("get some   tokens     man"))
 
+# Task 6
+def separate_punctuation(text):
+    return re.sub(r"(?:(?<!\\S)([!?.;,:])|(?:([!?.;,:])(?!\\S)))", r' \1\2 ', text)
+
 # Task 7
 def remove_punctuation(text):
     # pattern = '(?![a-zA-Z0-9]+)[^a-zA-Z0-9 ]'
     # pattern = '(?![a-zA-Z0-9])[^a-zA-Z0-9 ]+(?![ ]|$)'
     # pattern = '(?![a-zA-Z0-9])[^a-zA-Z0-9 ](?![a-zA-Z0-9]| |$)'
     # pattern = ' [^a-zA-Z0-9 ]+|^[^a-zA-Z0-9 ]+'
-    pattern = ' [^a-zA-Z0-9 ] '
+    pattern = '(?![a-zA-Z0-9])[^a-zA-Z0-9.!?,;:#$ ](?![a-zA-Z0-9])'
     replace = ' '
     new_text = re.sub(pattern, replace, text)
     return new_text
+
+def make_unigrams(text):
+    return " ".join(x for x in text)
+
+def make_bigrams(text):
+    pass
+
+def make_trigrams(text):
+    pass
 
 def sanitize(text):
     """Do parse the text in variable "text" according to the spec, and return
@@ -161,9 +172,17 @@ def sanitize(text):
     # TODO: Order of tasks: 8, 7, 6, 5 ?? <-- WRONG!
     # TODO: Remove special characters (keep other punctuation)
     # TODO: Double check punctuation symbols for separation
-
+    text = newlines_and_tabs_to_spaces(text)
+    text = remove_url(text)
+    text = separate_punctuation(text)
+    text = text.lower()
+    tokens_list = split_single_space(text)
+    parsed_text = " ".join(tokens_list) # Makes List to String
+    unigrams = make_unigrams(tokens_list)
+    unigrams_list = unigrams.split(' ')
+    bigrams = make_bigrams(unigrams_list) # Function Call Here bigrams(text)
+    trigrams = make_trigrams(unigrams_list) # Function Call Here trigrams(text)
     return [parsed_text, unigrams, bigrams, trigrams]
-
 
 if __name__ == "__main__":
     # This is the Python main function.
@@ -180,14 +199,15 @@ if __name__ == "__main__":
 
     # print(newlines_and_tabs_to_spaces("hey\n\t\n\twassup\n"))
     # print(split_single_space("get some   tokens     man"))
-    print(remove_punctuation(".. ,yo ;hey ! #$@ how are you?? app-le?!"))
-    print(remove_punctuation(". . , yo ; hey ! #$ how are you ? ? app-le ? ! ."))
+    # print(remove_punctuation(".. ,yo ;hey ! #$@ how are you?? app-le?!"))
+    # print(remove_punctuation(". . , yo ; hey ! #$ how are you ? ? app-le ? ! ."))
 
-    print(separate_punctuation_6(".. ,yo ;hey ! #$@ how are you?? app-le?!"))
-    #print(remove_url_2((" wohttps://www.wsws.org/en/articles/2017/01/14/nsas-j1!?Don't.;, .:delete !the@ $actual string%4.html). His campaign didn't")))
+    # print(separate_punctuation_6(".. ,yo ;hey ! #$@ how are you?? app-le?!"))
+    # print(remove_url_2((" wohttps://www.wsws.org/en/articles/2017/01/14/nsas-j1!?Don't.;, .:delete !the@ $actual string%4.html). His campaign didn't")))
     # with open('sample.json') as fp:
     #     line = fp.readline()
     #     while line:
     #         print(remove_url((line)))
     #         line = fp.readline()
     # fp.close()
+    print(sanitize("I'm afraid I can't explain myself, sir. Because I am not myself, you see?"))
