@@ -123,7 +123,7 @@ def remove_url(text):
     3. Matches https:// Replaces With Empty String
     4. Matches http:// Replaces With Empty String
     """
-    return re.sub(r'\[([^)]*)]\(http://[^)]*\)|\[([^)]*)]\(https://[^)]*\)|https://([^\s]+)|http://([^\s]+)', r'\1\2', text)
+    return re.sub(r'\[([^)]*)]\([^)]*\)|https://([^\s]+)|http://([^\s]+)', r'\1', text)
 
 # Task 5
 def split_single_space(text):
@@ -231,6 +231,7 @@ if __name__ == "__main__":
     # fp.close()
     arg = "! #$@ how are you?? app-le?!"
     arg = "I'm afraid I can't explain myself, sir. Because I am not myself, you see?"
+    arg = "[Let](/u/rlin2k1)"
     sanitized = sanitize(arg)
     print("INPUT: " + arg)
     print("Parsed: " + sanitized[0])
