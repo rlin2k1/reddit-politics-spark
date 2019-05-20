@@ -155,26 +155,38 @@ def make_unigrams(text):
     remove = remove.replace("$", "")
     return ' '.join(filter(lambda x: x not in remove, text))
 
-def make_bigrams(unigrams_list):
-    size = len(unigrams_list)
+def make_bigrams(tokens_list):
+    punctuations = ['.', ',', '!', '?', ';', ':']
+    size = len(tokens_list)
     bigrams = ""
     if size < 2:
         return bigrams
+    add_space_to_front = False
     for i in range(0, size-1): # First index to second-to-last index
-        if i > 0:
+        if tokens_list[i] in punctuations or tokens_list[i+1] in punctuations:
+            continue # Don't add punctuations
+
+        if add_space_to_front:
             bigrams += " "
-        bigrams += unigrams_list[i] + "_" + unigrams_list[i+1]
+        bigrams += tokens_list[i] + "_" + tokens_list[i+1]
+        add_space_to_front = True
     return bigrams
 
-def make_trigrams(unigrams_list):
-    size = len(unigrams_list)
+def make_trigrams(tokens_list):
+    punctuations = ['.', ',', '!', '?', ';', ':']
+    size = len(tokens_list)
     trigrams = ""
     if size < 3:
         return trigrams
+    add_space_to_front = False
     for i in range(0, size-2): # First index to third-to-last index
-        if i > 0:
+        if tokens_list[i] in punctuations or tokens_list[i+1] in punctuations or tokens_list[i+2] in punctuations:
+            continue # Don't add punctuations
+
+        if add_space_to_front:
             trigrams += " "
-        trigrams += unigrams_list[i] + "_" + unigrams_list[i+1] + "_" + unigrams_list[i+2]
+        trigrams += tokens_list[i] + "_" + tokens_list[i+1] + "_" + tokens_list[i+2]
+        add_space_to_front = True
     return trigrams
 
 def sanitize(text):
@@ -186,8 +198,6 @@ def sanitize(text):
     4. The trigrams
     """
     # YOUR CODE GOES BELOW:
-    # TODO: Remove special characters (keep other punctuation)
-    # TODO: Double check punctuation symbols for separation
     text = newlines_and_tabs_to_spaces(text)
     text = remove_url(text)
     text = separate_punctuation(text)
@@ -196,9 +206,8 @@ def sanitize(text):
     tokens_list = split_single_space(text)
     parsed_text = " ".join(tokens_list) # Makes List to String
     unigrams = make_unigrams(tokens_list)
-    unigrams_list = unigrams.split(' ')
-    bigrams = make_bigrams(unigrams_list) # Function Call Here bigrams(text)
-    trigrams = make_trigrams(unigrams_list) # Function Call Here trigrams(text)
+    bigrams = make_bigrams(tokens_list)
+    trigrams = make_trigrams(tokens_list)
     return [parsed_text, unigrams, bigrams, trigrams]
 
 if __name__ == "__main__":
@@ -220,7 +229,8 @@ if __name__ == "__main__":
     #         print(remove_url((line)))
     #         line = fp.readline()
     # fp.close()
-    arg = ".. ,yo ;hey ! #$@ how are you?? app-le?!"
+    arg = "! #$@ how are you?? app-le?!"
+    arg = "I'm afraid I can't explain myself, sir. Because I am not myself, you see?"
     sanitized = sanitize(arg)
     print("INPUT: " + arg)
     print("Parsed: " + sanitized[0])
