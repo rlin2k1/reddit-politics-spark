@@ -155,11 +155,27 @@ def make_unigrams(text):
     remove = remove.replace("$", "")
     return ' '.join(filter(lambda x: x not in remove, text))
 
-def make_bigrams(text):
-    pass
+def make_bigrams(unigrams_list):
+    size = len(unigrams_list)
+    bigrams = ""
+    if size < 2:
+        return bigrams
+    for i in range(0, size-1): # First index to second-to-last index
+        if i > 0:
+            bigrams += " "
+        bigrams += unigrams_list[i] + "_" + unigrams_list[i+1]
+    return bigrams
 
-def make_trigrams(text):
-    pass
+def make_trigrams(unigrams_list):
+    size = len(unigrams_list)
+    trigrams = ""
+    if size < 3:
+        return trigrams
+    for i in range(0, size-2): # First index to third-to-last index
+        if i > 0:
+            trigrams += " "
+        trigrams += unigrams_list[i] + "_" + unigrams_list[i+1] + "_" + unigrams_list[i+2]
+    return trigrams
 
 def sanitize(text):
     """Do parse the text in variable "text" according to the spec, and return
