@@ -150,7 +150,7 @@ def remove_punctuation(text):
     return new_text
 
 def make_unigrams(text):
-    return " ".join(x for x in text)
+    return ' '.join(filter(lambda x: x not in string.punctuation, text))
 
 def make_bigrams(text):
     pass
@@ -180,6 +180,7 @@ def sanitize(text):
     parsed_text = " ".join(tokens_list) # Makes List to String
     unigrams = make_unigrams(tokens_list)
     unigrams_list = unigrams.split(' ')
+    print(unigrams_list)
     bigrams = make_bigrams(unigrams_list) # Function Call Here bigrams(text)
     trigrams = make_trigrams(unigrams_list) # Function Call Here trigrams(text)
     return [parsed_text, unigrams, bigrams, trigrams]
