@@ -150,7 +150,10 @@ def remove_punctuation(text):
     return new_text
 
 def make_unigrams(text):
-    return ' '.join(filter(lambda x: x not in string.punctuation, text))
+    remove = string.punctuation
+    remove = remove.replace("#", "")
+    remove = remove.replace("$", "")
+    return ' '.join(filter(lambda x: x not in remove, text))
 
 def make_bigrams(text):
     pass
@@ -166,13 +169,13 @@ def sanitize(text):
     3. The bigrams
     4. The trigrams
     """
-    
     # YOUR CODE GOES BELOW:
     # TODO: Remove special characters (keep other punctuation)
     # TODO: Double check punctuation symbols for separation
     text = newlines_and_tabs_to_spaces(text)
     text = remove_url(text)
     text = separate_punctuation(text)
+    text = remove_punctuation(text)
     text = text.lower()
     tokens_list = split_single_space(text)
     parsed_text = " ".join(tokens_list) # Makes List to String
