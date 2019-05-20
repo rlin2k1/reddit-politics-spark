@@ -168,8 +168,6 @@ def sanitize(text):
     """
     
     # YOUR CODE GOES BELOW:
-
-    # TODO: Order of tasks: 8, 7, 6, 5 ?? <-- WRONG!
     # TODO: Remove special characters (keep other punctuation)
     # TODO: Double check punctuation symbols for separation
     text = newlines_and_tabs_to_spaces(text)
@@ -180,7 +178,6 @@ def sanitize(text):
     parsed_text = " ".join(tokens_list) # Makes List to String
     unigrams = make_unigrams(tokens_list)
     unigrams_list = unigrams.split(' ')
-    print(unigrams_list)
     bigrams = make_bigrams(unigrams_list) # Function Call Here bigrams(text)
     trigrams = make_trigrams(unigrams_list) # Function Call Here trigrams(text)
     return [parsed_text, unigrams, bigrams, trigrams]
@@ -198,17 +195,16 @@ if __name__ == "__main__":
     # We are "requiring" your write a main function so you can
     # debug your code. It will not be graded.
 
-    # print(newlines_and_tabs_to_spaces("hey\n\t\n\twassup\n"))
-    # print(split_single_space("get some   tokens     man"))
-    # print(remove_punctuation(".. ,yo ;hey ! #$@ how are you?? app-le?!"))
-    # print(remove_punctuation(". . , yo ; hey ! #$ how are you ? ? app-le ? ! ."))
-
-    # print(separate_punctuation_6(".. ,yo ;hey ! #$@ how are you?? app-le?!"))
-    # print(remove_url_2((" wohttps://www.wsws.org/en/articles/2017/01/14/nsas-j1!?Don't.;, .:delete !the@ $actual string%4.html). His campaign didn't")))
     # with open('sample.json') as fp:
     #     line = fp.readline()
     #     while line:
     #         print(remove_url((line)))
     #         line = fp.readline()
     # fp.close()
-    print(sanitize("I'm afraid I can't explain myself, sir. Because I am not myself, you see?"))
+    arg = ".. ,yo ;hey ! #$@ how are you?? app-le?!"
+    sanitized = sanitize(arg)
+    print("INPUT: " + arg)
+    print("Parsed: " + sanitized[0])
+    print("Unigrams: " + sanitized[1])
+    print("Bigrams: " + sanitized[2])
+    print("Trigrams: " + sanitized[3])
