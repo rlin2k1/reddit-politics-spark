@@ -136,7 +136,7 @@ def split_single_space(text):
 
 # Task 6
 def separate_punctuation(text):
-    return re.sub(r"(?:(?<!\\S)([!?.;,:*])|(?:([!?.;,:*])(?!\\S)))", r' \1\2 ', text)
+    return re.sub(r"\s*([^\w\s$#])\B|\B([^\w\s$#])\s*", r" \1\2 ", text)
 
 # Task 7
 def remove_punctuation(text):
@@ -201,7 +201,9 @@ def sanitize(text):
     text = newlines_and_tabs_to_spaces(text)
     text = remove_url(text)
     text = separate_punctuation(text)
+    print(text)
     text = remove_punctuation(text)
+    print(text)
     text = text.lower()
     tokens_list = split_single_space(text)
     parsed_text = " ".join(tokens_list) # Makes List to String
@@ -229,8 +231,8 @@ if __name__ == "__main__":
     #         print(remove_url((line)))
     #         line = fp.readline()
     # fp.close()
-    arg1 = "! #$@ how are you?? *let* app-le?!"
-    arg = "I'm afraid I can't explain myself, sir. Because I am not myself, you see?"
+    arg1 = "! #$@ how are you?? @le;t@ app-le?! fsadf r/example_subreddit"
+    arg = "I'm afraid I can't explain myself, sir. Because I am not myself, you see? r/example_subreddit"
     arg = "[Let](/u/rlin2k1)"
     sanitized = sanitize(arg1)
     print("INPUT: " + arg1)
