@@ -136,7 +136,7 @@ def split_single_space(text):
 
 # Task 6
 def separate_punctuation(text):
-    return re.sub(r"(?:(?<!\\S)([!?.;,:])|(?:([!?.;,:])(?!\\S)))", r' \1\2 ', text)
+    return re.sub(r"(?:(?<!\\S)([!?.;,:*])|(?:([!?.;,:*])(?!\\S)))", r' \1\2 ', text)
 
 # Task 7
 def remove_punctuation(text):
@@ -229,11 +229,11 @@ if __name__ == "__main__":
     #         print(remove_url((line)))
     #         line = fp.readline()
     # fp.close()
-    arg = "! #$@ how are you?? app-le?!"
+    arg1 = "! #$@ how are you?? *let* app-le?!"
     arg = "I'm afraid I can't explain myself, sir. Because I am not myself, you see?"
     arg = "[Let](/u/rlin2k1)"
-    sanitized = sanitize(arg)
-    print("INPUT: " + arg)
+    sanitized = sanitize(arg1)
+    print("INPUT: " + arg1)
     print("Parsed: " + sanitized[0])
     print("Unigrams: " + sanitized[1])
     print("Bigrams: " + sanitized[2])
