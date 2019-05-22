@@ -136,7 +136,7 @@ def split_single_space(text):
 
 # Task 6
 def separate_punctuation(text):
-    return re.sub(r"\s*([^\w\s$#])\B|\B([^\w\s$#])\s*", r" \1\2 ", text)
+    return re.sub(r"\s*(_|[^\w\s$#])\B|\B(_|[^\w\s$#])\s*", r" \1\2 ", text)
 
 # Task 7
 def remove_punctuation(text):
@@ -231,7 +231,7 @@ if __name__ == "__main__":
     #         print(remove_url((line)))
     #         line = fp.readline()
     # fp.close()
-    arg1 = "! #$@ how are you?? @le;t@ app-le?! fsadf r/example_subreddit"
+    arg1 = "! #$@ _how_ are you?? @le;t@ a_pp-le?! fsa.df,,,, r/example_subreddit"
     arg = "I'm afraid I can't explain myself, sir. Because I am not myself, you see? r/example_subreddit"
     arg = "[Let](/u/rlin2k1)"
     sanitized = sanitize(arg1)
