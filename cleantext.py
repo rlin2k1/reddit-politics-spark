@@ -238,7 +238,8 @@ def sanitize(text):
     unigrams = make_unigrams(tokens_list)
     bigrams = make_bigrams(tokens_list)
     trigrams = make_trigrams(tokens_list)
-    return [parsed_text, unigrams, bigrams, trigrams]
+    return unigrams.split(" ") + bigrams.split(" ") + trigrams.split(" ")
+    # return [parsed_text, unigrams, bigrams, trigrams]
 
 ########################################################################################################################################################
 ########################################################################################################################################################
@@ -443,7 +444,7 @@ def test_sanitize():
 ########################################################################################################################################################
     
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
     # This is the Python main function.
     # You should be able to run
     # python cleantext.py <filename>
@@ -455,24 +456,4 @@ if __name__ == "__main__":
 
     # We are "requiring" your write a main function so you can
     # debug your code. It will not be graded.
-
-    # with open('sample.json') as fp:
-    #     line = fp.readline()
-    #     while line:
-    #         print(remove_url((line)))
-    #         line = fp.readline()
-    # fp.close()
-
-    # arg = "! ;h.o,w_ are you?? app-le?!"
-    # arg = "I'm afraid I can't explain myself, sir. Because I am not myself, you see?"
-    # arg = "[Let](https://www.merriam-webster.com/dictionary/let) could mean loads of things, including \"to give opportunity to *or failure to prevent*.\" It's ambiguous at best. I mean, those women *let* CK jack off in front of them. You're right that the rules are different if you're wealthy, but I'm not sure I'm okay with that. "
-    # arg = ".,1!2@3#4$5%6^7&8*9(0.,"
-    # arg = "*let*"
-    # sanitized = sanitize(arg)
-    # print("INPUT: " + arg)
-    # print("Parsed: " + sanitized[0])
-    # print("Unigrams: " + sanitized[1])
-    # print("Bigrams: " + sanitized[2])
-    # print("Trigrams: " + sanitized[3])
-
-    test_sanitize()
+    

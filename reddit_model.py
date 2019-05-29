@@ -1,31 +1,50 @@
+""" reddit_model.py
+This module implements a Reddit Politics Sentiment Classifier using Spark mllib.
+
+Date Created:
+    May 28th, 2019
+"""
+
+# ---------------------------------------------------------------------------- #
+# Import Statements for the Necessary Packages
+# ---------------------------------------------------------------------------- #
 from __future__ import print_function
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SQLContext
-import pandas as pd
-from cleantext import sanitize
+from pyspark.sql.functions import udf # Spark User Defined Function
+from pyspark.sql.types import ArrayType, StringType # UDF Return Types
+from cleantext import sanitize # Tokenizer
+import pandas as pd # Pandas DataFrame Printing
 
-from pyspark.sql.functions import udf
-# squared_udf = udf(sanitize, ArrayType(StringType()))
-# df = spark.table("test")
-# display(df.select("id", squared_udf("id").alias("id_squared")))
-
-
+# ---------------------------------------------------------------------------- #
+# Main Function
+# ---------------------------------------------------------------------------- #
 def main(context):
     """Main function takes a Spark SQL context."""
-    # YOUR CODE HERE
-    # YOU MAY ADD OTHER FUNCTIONS AS NEEDED
-
     #---------------------------------------------------------------------------
     # TASK 1
     # df = context.read.csv('labeled_data.csv')
     # df.write.parquet("labeled_data.parquet")
     # comments = context.read.json("comments-minimal.json.bz2") 
-    # df.write.parquet("comments.parquet")
+    # comments.write.parquet("comments.parquet")
     # submissions = context.read.json("submissions.json.bz2")
-    # df.write.parquet("submissions.parquet")
+    # submissions.write.parquet("submissions.parquet")
     labeled_data = context.read.parquet('labeled_data.parquet')
+    # labeled_data.show()
     comments = context.read.parquet('comments.parquet')
+    # comments.show()
     submissions = context.read.parquet('submissions.parquet')
+    # submissions.show()
+
+    #---------------------------------------------------------------------------
+    # TASK 4
+    sanitize_udf = udf(sanitize, ArrayType(StringType()))
+
+    #---------------------------------------------------------------------------
+    # TASK 5
+    sanitized = comments.select(sanitize_udf('body').alias('body_sanitize'))
+    df = sanitized.limit(10).toPandas() # Pretty Printing Only
+    print(df) # Pretty Printing Only
 
 if __name__ == "__main__":
     conf = SparkConf().setAppName("CS143 Project 2B")
