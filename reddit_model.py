@@ -30,6 +30,10 @@ def main(context):
     # submissions = context.read.json("submissions.json.bz2")
     # submissions.write.parquet("submissions.parquet")
     labeled_data = context.read.parquet('labeled_data.parquet')
+    labeled_data = labeled_data.withColumnRenamed("_c0", "Input_id")\
+                               .withColumnRenamed("_c1", "labeldem")\
+                               .withColumnRenamed("_c2", "labelgop")\
+                               .withColumnRenamed("_c3", "labeldjt")
     # labeled_data.show()
     comments = context.read.parquet('comments.parquet')
     # comments.show()
@@ -37,12 +41,17 @@ def main(context):
     # submissions.show()
 
     #---------------------------------------------------------------------------
+    # TASK 2
+    labeled_comments = labeled_data.join(comments, comments.id == labeled_data.Input_id)
+    labeled_comments.show()
+
+    #---------------------------------------------------------------------------
     # TASK 4
     sanitize_udf = udf(sanitize, ArrayType(StringType()))
 
     #---------------------------------------------------------------------------
     # TASK 5
-    sanitized = comments.select(sanitize_udf('body').alias('body_sanitize'))
+    sanitized = labeled_comments.select(sanitize_udf('body').alias('body_sanitize'))
     df = sanitized.limit(10).toPandas() # Pretty Printing Only
     print(df) # Pretty Printing Only
 
