@@ -8,6 +8,8 @@ import re
 import string
 import argparse
 
+from json import loads as json_to_dict
+import sys
 
 __author__ = ""
 __email__ = ""
@@ -238,8 +240,8 @@ def sanitize(text):
     unigrams = make_unigrams(tokens_list)
     bigrams = make_bigrams(tokens_list)
     trigrams = make_trigrams(tokens_list)
-    return unigrams.split(" ") + bigrams.split(" ") + trigrams.split(" ")
-    # return [parsed_text, unigrams, bigrams, trigrams]
+    # return unigrams.split(" ") + bigrams.split(" ") + trigrams.split(" ")
+    return [parsed_text, unigrams, bigrams, trigrams]
 
 ########################################################################################################################################################
 ########################################################################################################################################################
@@ -444,16 +446,18 @@ def test_sanitize():
 ########################################################################################################################################################
     
 
-#if __name__ == "__main__":
-    # This is the Python main function.
-    # You should be able to run
-    # python cleantext.py <filename>
-    # and this "main" function will open the file,
-    # read it line by line, extract the proper value from the JSON,
-    # pass to "sanitize" and print the result as a list.
-
-    # YOUR CODE GOES BELOW.
-
-    # We are "requiring" your write a main function so you can
-    # debug your code. It will not be graded.
-    
+if __name__ == "__main__":
+    if len(sys.argv) == 2:
+        print("Parsing file: {}".format(sys.argv[1]))
+        with open(sys.argv[1], "r") as json_file:
+            cleaned = []
+            for line in json_file:
+                comment = json_to_dict(line)['body']
+                print("BEFORE: {}".format(comment))
+                cleaned.append(sanitize(comment))
+            print(">>> PARSED TEXT: {}".format(cleaned))
+            print(">>> UNIGRAMS: {}".format(cleaned))
+            print(">>> BIGRAMS: {}".format(cleaned))
+            print(">>> TRIGRAMS: {}".format(cleaned))
+    else:
+        sys.exit("USAGE: python3 cleantext.py <filename>")
