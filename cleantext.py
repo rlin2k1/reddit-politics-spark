@@ -240,8 +240,8 @@ def sanitize(text):
     unigrams = make_unigrams(tokens_list)
     bigrams = make_bigrams(tokens_list)
     trigrams = make_trigrams(tokens_list)
-    # return unigrams.split(" ") + bigrams.split(" ") + trigrams.split(" ")
-    return [parsed_text, unigrams, bigrams, trigrams]
+    return unigrams.split(" ") + bigrams.split(" ") + trigrams.split(" ")
+    # return [parsed_text, unigrams, bigrams, trigrams]
 
 ########################################################################################################################################################
 ########################################################################################################################################################
