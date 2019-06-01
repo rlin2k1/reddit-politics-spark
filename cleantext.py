@@ -455,9 +455,9 @@ if __name__ == "__main__":
                 comment = json_to_dict(line)['body']
                 print("BEFORE: {}".format(comment))
                 cleaned.append(sanitize(comment))
-            print(">>> PARSED TEXT: {}".format(cleaned))
-            print(">>> UNIGRAMS: {}".format(cleaned))
-            print(">>> BIGRAMS: {}".format(cleaned))
-            print(">>> TRIGRAMS: {}".format(cleaned))
+                print(">>> PARSED TEXT: {}".format(cleaned[-1][0]))
+                print(">>> UNIGRAMS: {}".format(cleaned[-1][1]))
+                print(">>> BIGRAMS: {}".format(cleaned[-1][2]))
+                print(">>> TRIGRAMS: {}".format(cleaned[-1][3]))
     else:
         sys.exit("USAGE: python3 cleantext.py <filename>")
