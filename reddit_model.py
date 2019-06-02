@@ -12,7 +12,7 @@ from __future__ import print_function
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SQLContext
 from pyspark.sql.functions import udf # Spark User Defined Function
-from pyspark.sql.types import ArrayType, StringType # UDF Return Types
+from pyspark.sql.types import ArrayType, StringType, IntegerType # UDF Return Types
 from cleantext import sanitize # Tokenizer
 import pandas as pd # Pandas DataFrame Printing
 
@@ -49,7 +49,8 @@ def main(context):
     #---------------------------------------------------------------------------
     # TASK 2
     labeled_comments = labeled_data.join(comments, comments.id == labeled_data.Input_id)
-    labeled_comments.show()
+    labeled_comments = labeled_comments.select('Input_id', 'labeldjt', 'body')
+    # labeled_comments.show()
 
     #---------------------------------------------------------------------------
     # TASK 4
@@ -57,27 +58,41 @@ def main(context):
 
     #---------------------------------------------------------------------------
     # TASK 5
-    sanitized = labeled_comments.select(sanitize_udf('body').alias('raw'))
-    df = sanitized.limit(10).toPandas() # Pretty Printing Only
-    print(df) # Pretty Printing Only
+    sanitized_labeled_comments = labeled_comments.select('Input_id', 'labeldjt', sanitize_udf('body').alias('raw'))
+    # df = sanitized_labeled_comments.limit(10).toPandas() # Pretty Printing Only
+    # print(df) # Pretty Printing Only
 
     #---------------------------------------------------------------------------
     # TASK 6A
-    cv = CountVectorizer(binary=True, minDF=10.0, inputCol="raw", outputCol="vectors")
-    model = cv.fit(sanitized)
-    model.transform(sanitized).show(truncate=False)
+    cv = CountVectorizer(binary=True, minDF=10.0, inputCol="raw", outputCol="features")
+    model = cv.fit(sanitized_labeled_comments)
+    sanitized_labeled_comments = model.transform(sanitized_labeled_comments)
+    sanitized_labeled_comments.show(truncate=False)
     countVectorizerPath = "count_vectorizer"
-    cv.save(countVectorizerPath)
+    # cv.save(countVectorizerPath)
 
     #---------------------------------------------------------------------------
     # TASK 6B
+    # Labels: {1, 0, -1, -99}
+    pos = sanitized_labeled_comments.select(sanitized_labeled_comments.features, sanitized_labeled_comments.labeldjt.cast(IntegerType()))
+    pos = pos.withColumnRenamed("labeldjt", "label")
+    pos = pos.replace(-1, 0)
+    pos = pos.replace(-99, 0)
+
+    pos.show()
+    neg = sanitized_labeled_comments.select(sanitized_labeled_comments.features, sanitized_labeled_comments.labeldjt.cast(IntegerType()))
+    neg = neg.withColumnRenamed("labeldjt", "label")
+    neg = neg.replace(-1, 1)
+    neg = neg.replace(1, 0)
+    neg = neg.replace(-99, 0)
+    neg.show()
 
     #---------------------------------------------------------------------------
     # TASK 7: MACHINE LEARNING PORTION TO TRAIN MODELS
     # Initialize two logistic regression models.
     # Replace labelCol with the column containing the label, and featuresCol with the column containing the features.
-    poslr = LogisticRegression(labelCol="poslabel", featuresCol="features", maxIter=10)
-    neglr = LogisticRegression(labelCol="neglabel", featuresCol="features", maxIter=10)
+    poslr = LogisticRegression(labelCol="label", featuresCol="features", maxIter=10)
+    neglr = LogisticRegression(labelCol="label", featuresCol="features", maxIter=10)
     # This is a binary classifier so we need an evaluator that knows how to deal with binary classifiers.
     posEvaluator = BinaryClassificationEvaluator()
     negEvaluator = BinaryClassificationEvaluator()
