@@ -163,9 +163,9 @@ def main(context):
     strip_t3_udf = udf(strip_t3, StringType())
     sarcastic_or_quote_udf = udf(sarcastic_or_quote, BooleanType())
     # Get Unseen Data
-    final_deliverable = comments.select('created_utc', strip_t3_udf(comments.link_id).alias('link_id'), 'author_flair_text', 'id', 'body')\
+    sanitized_final_deliverable = comments.select('created_utc', strip_t3_udf(comments.link_id).alias('link_id'), 'author_flair_text', 'id', sanitize_udf('body').alias('raw'))\
         .filter(sarcastic_or_quote_udf(comments['body'])) #F.when(comments["body"].rlike('^&gt|\/s'), False).otherwise(True))
-    final_deliverable.show()
+    sanitized_final_deliverable.show()
 
     #---------------------------------------------------------------------------
     # TASK 9
@@ -176,7 +176,6 @@ def main(context):
     negModel = CrossValidatorModel.load("project2/neg.model") # TODO DELETE
 
     # Sanitize Task 8
-    sanitized_final_deliverable = final_deliverable.select('created_utc', 'author_flair_text', 'link_id', 'id', sanitize_udf('body').alias('raw'))
     sanitized_final_deliverable = model.transform(sanitized_final_deliverable)
 
     # Run classifier on unseen data
@@ -208,6 +207,12 @@ def main(context):
 
     posResult.show()
     negResult.show()
+
+    #---------------------------------------------------------------------------
+    # TASK 10: Perform Analysis on the Predictions
+    # 1. Percentage of Comments that Were Positive/Negative Across ALL Submissions
+    n_comments = results.count()
+    task_10_1 = result.groupby("link_id").sum('pos','neg')
 
     
 
