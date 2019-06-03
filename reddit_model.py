@@ -17,6 +17,7 @@ from pyspark.sql.functions import udf # Spark User Defined Function
 from pyspark.sql.types import ArrayType, StringType, IntegerType, BooleanType
 from cleantext import sanitize # Tokenizer
 import pandas as pd # Pandas DataFrame Printing
+from pyspark.sql.functions import count, avg, sum
 
 from pyspark.ml.classification import LogisticRegression
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, CrossValidatorModel 
@@ -33,7 +34,6 @@ def get_index_1(vec):
 
 def get_index_0(vec):
     return str(vec[0])
-
 
 def predict_pos(vec):
     if float(vec[1]) > 0.2:
@@ -75,6 +75,7 @@ def check_state(text):
 # Main Function
 # ---------------------------------------------------------------------------- #
 def main(context):
+    # print("\n\nTrue or not: %s\n\n" % str(spark.sql.join.preferSortMergeJoin)) # TODO Delete
     """Main function takes a Spark SQL context."""
     #---------------------------------------------------------------------------
     # TASK 1
@@ -96,23 +97,28 @@ def main(context):
     # submissions.show()
     #---------------------------------------------------------------------------
     # TASK 2
+    print("\n\n\n\nTASK 2......................\n\n\n\n") # TODO DELETE
     labeled_comments = labeled_data.join(comments, comments.id == labeled_data.Input_id)
     labeled_comments = labeled_comments.select('Input_id', 'labeldjt', 'body')
     # labeled_comments.show()
 
     #---------------------------------------------------------------------------
     # TASK 4
+    print("\n\n\n\nTASK 4......................\n\n\n\n") # TODO DELETE
     sanitize_udf = udf(sanitize, ArrayType(StringType()))
 
     """ # TODO uncomment
+    
     #---------------------------------------------------------------------------
     # TASK 5
+    print("\n\n\n\nTASK 5......................\n\n\n\n") # TODO DELETE
     sanitized_labeled_comments = labeled_comments.select('Input_id', 'labeldjt', sanitize_udf('body').alias('raw'))
     # df = sanitized_labeled_comments.limit(10).toPandas() # Pretty Printing Only
     # print(df) # Pretty Printing Only
 
     #---------------------------------------------------------------------------
     # TASK 6A
+    print("\n\n\n\nTASK 6A......................\n\n\n\n") # TODO DELETE
     cv = CountVectorizer(binary=True, minDF=10.0, inputCol="raw", outputCol="features")
     model = cv.fit(sanitized_labeled_comments)
     sanitized_labeled_comments = model.transform(sanitized_labeled_comments)
@@ -122,6 +128,9 @@ def main(context):
 
     #---------------------------------------------------------------------------
     # TASK 6B
+    print("\n\n\n\nTASK 6B......................\n\n\n\n") # TODO DELETE
+
+
     # Labels: {1, 0, -1, -99}
     pos = sanitized_labeled_comments.select(sanitized_labeled_comments.features, sanitized_labeled_comments.labeldjt.cast(IntegerType()))
     pos = pos.withColumnRenamed("labeldjt", "label")
@@ -131,13 +140,14 @@ def main(context):
 
     neg = sanitized_labeled_comments.select(sanitized_labeled_comments.features, sanitized_labeled_comments.labeldjt.cast(IntegerType()))
     neg = neg.withColumnRenamed("labeldjt", "label")
-    neg = neg.replace(-1, 1)
     neg = neg.replace(1, 0)
     neg = neg.replace(-99, 0)
+    neg = neg.replace(-1, 1)
     neg.show()
 
     #---------------------------------------------------------------------------
     # TASK 7: MACHINE LEARNING PORTION TO TRAIN MODELS
+    print("\n\n\n\nTASK 7......................\n\n\n\n") # TODO DELETE
     # Initialize two logistic regression models.
     # Replace labelCol with the column containing the label, and featuresCol with the column containing the features.
     poslr = LogisticRegression(labelCol="label", featuresCol="features", maxIter=10)
@@ -171,6 +181,9 @@ def main(context):
     """ # TODO uncomment
     #---------------------------------------------------------------------------
     # TASK 8: Make Final Deliverable for Unseen Data - We don't need labeled_data anymore
+
+    print("\n\n\n\nTASK 8......................\n\n\n\n") # TODO DELETE
+
     strip_t3_udf = udf(strip_t3, StringType())
     sarcastic_or_quote_udf = udf(sarcastic_or_quote, BooleanType())
     # Get Unseen Data
@@ -179,7 +192,9 @@ def main(context):
     sanitized_final_deliverable.show()
     #---------------------------------------------------------------------------
     # TASK 9
-    """
+
+    print("\n\n\n\nTASK 9......................\n\n\n\n") # TODO DELETE
+
     # TODO DELETE
     model = CountVectorizerModel.load("count_vectorizer_model") # TODO DELETE BEFORE SUBMITTING
     posModel = CrossValidatorModel.load("project2/pos.model") # TODO DELETE BEFORE SUBMITTING
@@ -187,6 +202,9 @@ def main(context):
 
     # Sanitize Task 8
     # Run the CountVectorizerModel on Task 8 relation
+    # TODO: Consider not sampling if we have time:
+    # SAMPLE 20% of the data
+    # sanitized_final_deliverable = sanitized_final_deliverable.sample(False, 0.2, None) # TODO change sample size
     sanitized_final_deliverable = model.transform(sanitized_final_deliverable)
 
     # Run classifier on unseen data to get positive labels
@@ -210,19 +228,33 @@ def main(context):
     result = result.select('created_utc', 'author_flair_text', 'link_id', 'id',\
                                  predict_pos_udf(result.probability_pos).alias('pos'),\
                                  predict_neg_udf(result.probability_neg).alias('neg'))
-    # result.write.parquet("result.parquet")
+    result.write.parquet("result.parquet")
     result.show()
     # result_sample = result.sample(False,0.01,None)
-    """
+
     #---------------------------------------------------------------------------
     # TASK 10: Perform Analysis on the Predictions
-    # 1. Percentage of Comments that Were Positive/Negative Across ALL Submissions
-    print(results)
+    print("\n\n\n\nTASK 10......................\n\n\n\n") # TODO DELETE
+    # 1. Percentage of Comments that Were Positive/Negative Across ALL Submissionss
     submissions_help = submissions.select('id', 'title')
     submissions_help = submissions_help.sort(submissions_help.id.desc())
-    results = results.sort(results.link_id.desc())
-    test = results.join(submissions_help, results.link_id == submissions_help.id)
-    test.show()
+    result = result.sort(result.link_id.desc())
+    result = result.join(submissions_help, result.link_id == submissions_help.id)
+    result.write.parquet("result1.parquet")
+    result.show()
+
+
+    # results = context.read.parquet('result.parquet')
+    # print(results)
+    # submissions_help = submissions.select('id', 'title')
+    # submissions_help = submissions_help.sort(submissions_help.id.desc())
+    # results = results.sort(results.link_id.desc())
+    # test = results.join(submissions_help, results.link_id == submissions_help.id)
+    # test.show()
+
+
+
+    # result.write.parquet("results.parquet")
 
     # context.registerDataFrameAsTable(result, "result")
     # task_10_1 = context.sql("SELECT sum(pos), sum(neg), count(*) FROM result GROUP BY link_id")
@@ -234,12 +266,16 @@ def main(context):
     # task_10_2 = context.sql("SELECT FROM_UNIXTIME(created_utc), AVG(pos), AVG(neg) FROM result GROUP BY FROM_UNIXTIME(created_utc)")
 
     # task_10_3 = context.sql("SELECT AVG(pos), AVG(neg) FROM result GROUP BY ")
+
+    # task_10_1 = result.groupBy('link_id').agg(sum('pos'), sum('neg'), count('*'))
+    # task_10_1.show()
+
 if __name__ == "__main__":
     conf = SparkConf().setAppName("CS143 Project 2B")
     conf = conf.setMaster("local[*]")
     sc   = SparkContext(conf=conf)
     sqlContext = SQLContext(sc)
     sc.addPyFile("cleantext.py")
-    SparkContext.setSystemProperty('spark.driver.memory', '11g')
+    # SparkContext.setSystemProperty('spark.driver.memory', '11g')
     print(sc._conf.getAll())
     main(sqlContext)
