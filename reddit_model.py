@@ -26,6 +26,8 @@ from pyspark.ml.feature import CountVectorizerModel
 
 from pyspark.sql import SQLContext
 
+from pyspark.sql import functions as F
+
 def get_index_1(vec):
     return str(vec[1])
 
@@ -45,8 +47,6 @@ def predict_neg(vec):
     else:
         return 0
 
-
-
 import re # Regex
 # from pyspark.sql import functions as F # Assign Boolean Values to Functions
 
@@ -58,6 +58,18 @@ def sarcastic_or_quote(text):
     """Returns true if string contains '/s' or starts with &gt"""
     sarcastic_or_quote_match = re.compile(r'^&gt|\/s')
     return not sarcastic_or_quote_match.search(text)
+
+states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', \
+        'Connecticut', 'Delaware', 'District of Columbia', 'Florida', 'Georgia', 'Hawaii', \
+        'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', \
+        'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', \
+        'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', \
+        'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', \
+        'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', \
+        'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming']
+
+def check_state(text):
+    return text in states
 
 # ---------------------------------------------------------------------------- #
 # Main Function
@@ -82,7 +94,6 @@ def main(context):
     # comments.show()
     submissions = context.read.parquet('submissions.parquet')
     # submissions.show()
-
     #---------------------------------------------------------------------------
     # TASK 2
     labeled_comments = labeled_data.join(comments, comments.id == labeled_data.Input_id)
@@ -166,10 +177,9 @@ def main(context):
     sanitized_final_deliverable = comments.select('created_utc', strip_t3_udf(comments.link_id).alias('link_id'), 'author_flair_text', 'id', 'body', sanitize_udf('body').alias('raw'))\
         .filter(sarcastic_or_quote_udf(comments['body'])) #F.when(comments["body"].rlike('^&gt|\/s'), False).otherwise(True))
     sanitized_final_deliverable.show()
-
     #---------------------------------------------------------------------------
     # TASK 9
-
+    """
     # TODO DELETE
     model = CountVectorizerModel.load("count_vectorizer_model") # TODO DELETE BEFORE SUBMITTING
     posModel = CrossValidatorModel.load("project2/pos.model") # TODO DELETE BEFORE SUBMITTING
@@ -197,23 +207,39 @@ def main(context):
     predict_neg_udf = udf(predict_neg, IntegerType())
 
     # Make predictions based on probability and threshold:
-    result = result.select('created_utc', 'author_flair_text', 'link_id', 'id', 'raw', 'probability_pos', 'probability_neg',\
+    result = result.select('created_utc', 'author_flair_text', 'link_id', 'id',\
                                  predict_pos_udf(result.probability_pos).alias('pos'),\
                                  predict_neg_udf(result.probability_neg).alias('neg'))
+    # result.write.parquet("result.parquet")
     result.show()
+    # result_sample = result.sample(False,0.01,None)
+    """
     #---------------------------------------------------------------------------
     # TASK 10: Perform Analysis on the Predictions
     # 1. Percentage of Comments that Were Positive/Negative Across ALL Submissions
-    n_comments = results.count()
-    task_10_1 = result.groupby("link_id").sum('pos','neg')
-    task_10_1.show()
+    print(results)
+    submissions_help = submissions.select('id', 'title')
+    submissions_help = submissions_help.sort(submissions_help.id.desc())
+    results = results.sort(results.link_id.desc())
+    test = results.join(submissions_help, results.link_id == submissions_help.id)
+    test.show()
 
-    sqlContext = SQLContext(context)
-    
+    # context.registerDataFrameAsTable(result, "result")
+    # task_10_1 = context.sql("SELECT sum(pos), sum(neg), count(*) FROM result GROUP BY link_id")
+    # task_10_1.write.csv('hello')
+    # result_sample.createOrReplaceTempView("result_sample")
+    # task_10_1 = context.sql("Select link_id, AVG(pos), AVG(neg) FROM result_sample GROUP BY link_id")
+    # task_10_1.show()
+
+    # task_10_2 = context.sql("SELECT FROM_UNIXTIME(created_utc), AVG(pos), AVG(neg) FROM result GROUP BY FROM_UNIXTIME(created_utc)")
+
+    # task_10_3 = context.sql("SELECT AVG(pos), AVG(neg) FROM result GROUP BY ")
 if __name__ == "__main__":
     conf = SparkConf().setAppName("CS143 Project 2B")
     conf = conf.setMaster("local[*]")
     sc   = SparkContext(conf=conf)
     sqlContext = SQLContext(sc)
     sc.addPyFile("cleantext.py")
+    SparkContext.setSystemProperty('spark.driver.memory', '11g')
+    print(sc._conf.getAll())
     main(sqlContext)
