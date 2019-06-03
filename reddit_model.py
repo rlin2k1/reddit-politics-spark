@@ -11,16 +11,41 @@ Date Created:
 from __future__ import print_function
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SQLContext
+from pyspark.sql import functions
 from pyspark.sql.functions import udf # Spark User Defined Function
 from pyspark.sql.types import ArrayType, StringType, IntegerType # UDF Return Types
 from cleantext import sanitize # Tokenizer
 import pandas as pd # Pandas DataFrame Printing
 
 from pyspark.ml.classification import LogisticRegression
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder 
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, CrossValidatorModel 
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
 
 from pyspark.ml.feature import CountVectorizer
+from pyspark.ml.feature import CountVectorizerModel
+
+
+
+def get_index_1(vec):
+    return str(vec[1])
+
+def get_index_0(vec):
+    return str(vec[0])
+
+
+def predict_pos(vec):
+    if float(vec[1]) > 0.2:
+        return 1
+    else:
+        return 0
+
+def predict_neg(vec):
+    if float(vec[1]) > 0.25:
+        return 1
+    else:
+        return 0
+
+
 
 # ---------------------------------------------------------------------------- #
 # Main Function
@@ -46,6 +71,7 @@ def main(context):
     submissions = context.read.parquet('submissions.parquet')
     # submissions.show()
 
+
     #---------------------------------------------------------------------------
     # TASK 2
     labeled_comments = labeled_data.join(comments, comments.id == labeled_data.Input_id)
@@ -55,6 +81,10 @@ def main(context):
     #---------------------------------------------------------------------------
     # TASK 4
     sanitize_udf = udf(sanitize, ArrayType(StringType()))
+
+
+    """ #TODO uncomment
+
 
     #---------------------------------------------------------------------------
     # TASK 5
@@ -68,8 +98,8 @@ def main(context):
     model = cv.fit(sanitized_labeled_comments)
     sanitized_labeled_comments = model.transform(sanitized_labeled_comments)
     sanitized_labeled_comments.show(truncate=False)
-    countVectorizerPath = "count_vectorizer"
-    # cv.save(countVectorizerPath)
+    countVectorizerPath = "count_vectorizer_model"
+    # model.save(countVectorizerPath)
 
     #---------------------------------------------------------------------------
     # TASK 6B
@@ -117,6 +147,54 @@ def main(context):
     posModel.save("project2/pos.model")
     negModel.save("project2/neg.model")
     
+    """ #TODO uncomment
+
+
+    #---------------------------------------------------------------------------
+    # TASK 9
+
+    # TODO DELETE
+    final_deliverable = comments # TODO DELETE
+    model = CountVectorizerModel.load("count_vectorizer_model") # TODO DELETE
+    posModel = CrossValidatorModel.load("project2/pos.model") # TODO DELETE
+    negModel = CrossValidatorModel.load("project2/neg.model") # TODO DELETE
+
+    # Sanitize Task 8
+    sanitized_final_deliverable = final_deliverable.select('created_utc', 'author_flair_text', 'link_id', 'id', sanitize_udf('body').alias('raw'))
+    sanitized_final_deliverable = model.transform(sanitized_final_deliverable)
+
+    # Run classifier on unseen data
+    posResult = posModel.transform(sanitized_final_deliverable)
+    negResult = negModel.transform(sanitized_final_deliverable)
+
+    # TODO Delete
+    get_index_1_udf = udf(get_index_1, StringType())
+    test = posResult.select(get_index_1_udf(posResult.probability))
+    test.show()
+    test = negResult.select(get_index_1_udf(negResult.probability))
+    test.show()
+
+    predict_pos_udf = udf(predict_pos, IntegerType())
+    predict_neg_udf = udf(predict_neg, IntegerType())
+
+    # Make predictions based on probability and threshold:
+    # posResult = posResult.select('created_utc', 'author_flair_text', 'link_id', 'id', 'raw', 'probability',\
+    #                              functions.when(float('probability'[1]) > 0.2, 1).otherwise(0).alias('pos'))
+
+    # negResult = negResult.select('created_utc', 'author_flair_text', 'link_id', 'id', 'raw', 'probability',\
+    #                              functions.when(float('probability'[1]) > 0.25, 1).otherwise(0).alias('neg'))
+
+    posResult = posResult.select('created_utc', 'author_flair_text', 'link_id', 'id', 'raw', 'probability',\
+                                 predict_pos_udf(posResult.probability).alias('pos'))
+
+    negResult = negResult.select('created_utc', 'author_flair_text', 'link_id', 'id', 'raw', 'probability',\
+                                 predict_neg_udf(negResult.probability).alias('neg'))
+
+    posResult.show()
+    negResult.show()
+
+    
+
 
 if __name__ == "__main__":
     conf = SparkConf().setAppName("CS143 Project 2B")
