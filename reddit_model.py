@@ -13,14 +13,14 @@ from pyspark import SparkConf, SparkContext
 from pyspark.sql import SQLContext
 from pyspark.sql import functions
 from pyspark.sql.functions import udf # Spark User Defined Function
-from pyspark.sql.types import ArrayType, StringType, IntegerType # UDF Return Types
+# UDF Return Types
+from pyspark.sql.types import ArrayType, StringType, IntegerType, BooleanType
 from cleantext import sanitize # Tokenizer
 import pandas as pd # Pandas DataFrame Printing
 
 from pyspark.ml.classification import LogisticRegression
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, CrossValidatorModel 
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
-
 from pyspark.ml.feature import CountVectorizer
 from pyspark.ml.feature import CountVectorizerModel
 
@@ -47,6 +47,18 @@ def predict_neg(vec):
 
 
 
+import re # Regex
+# from pyspark.sql import functions as F # Assign Boolean Values to Functions
+
+def strip_t3(text):
+    """Strips first 3 characters of text."""
+    return text[3:]
+
+def sarcastic_or_quote(text):
+    """Returns true if string contains '/s' or starts with &gt"""
+    sarcastic_or_quote_match = re.compile(r'^&gt|\/s')
+    return not sarcastic_or_quote_match.search(text)
+
 # ---------------------------------------------------------------------------- #
 # Main Function
 # ---------------------------------------------------------------------------- #
@@ -71,7 +83,6 @@ def main(context):
     submissions = context.read.parquet('submissions.parquet')
     # submissions.show()
 
-
     #---------------------------------------------------------------------------
     # TASK 2
     labeled_comments = labeled_data.join(comments, comments.id == labeled_data.Input_id)
@@ -82,10 +93,7 @@ def main(context):
     # TASK 4
     sanitize_udf = udf(sanitize, ArrayType(StringType()))
 
-
-    """ #TODO uncomment
-
-
+    """
     #---------------------------------------------------------------------------
     # TASK 5
     sanitized_labeled_comments = labeled_comments.select('Input_id', 'labeldjt', sanitize_udf('body').alias('raw'))
@@ -108,8 +116,8 @@ def main(context):
     pos = pos.withColumnRenamed("labeldjt", "label")
     pos = pos.replace(-1, 0)
     pos = pos.replace(-99, 0)
-
     pos.show()
+
     neg = sanitized_labeled_comments.select(sanitized_labeled_comments.features, sanitized_labeled_comments.labeldjt.cast(IntegerType()))
     neg = neg.withColumnRenamed("labeldjt", "label")
     neg = neg.replace(-1, 1)
@@ -146,15 +154,23 @@ def main(context):
     # Once we train the models, we don't want to do it again. We can save the models and load them again later.
     posModel.save("project2/pos.model")
     negModel.save("project2/neg.model")
-    
-    """ #TODO uncomment
 
+    # Positive Model: posModel
+    # Negative Model: negModel
+    """
+    #---------------------------------------------------------------------------
+    # TASK 8: Make Final Deliverable for Unseen Data - We don't need labeled_data anymore
+    strip_t3_udf = udf(strip_t3, StringType())
+    sarcastic_or_quote_udf = udf(sarcastic_or_quote, BooleanType())
+    # Get Unseen Data
+    final_deliverable = comments.select('created_utc', strip_t3_udf(comments.link_id).alias('link_id'), 'author_flair_text', 'id', 'body')\
+        .filter(sarcastic_or_quote_udf(comments['body'])) #F.when(comments["body"].rlike('^&gt|\/s'), False).otherwise(True))
+    final_deliverable.show()
 
     #---------------------------------------------------------------------------
     # TASK 9
 
     # TODO DELETE
-    final_deliverable = comments # TODO DELETE
     model = CountVectorizerModel.load("count_vectorizer_model") # TODO DELETE
     posModel = CrossValidatorModel.load("project2/pos.model") # TODO DELETE
     negModel = CrossValidatorModel.load("project2/neg.model") # TODO DELETE
@@ -168,11 +184,11 @@ def main(context):
     negResult = negModel.transform(sanitized_final_deliverable)
 
     # TODO Delete
-    get_index_1_udf = udf(get_index_1, StringType())
-    test = posResult.select(get_index_1_udf(posResult.probability))
-    test.show()
-    test = negResult.select(get_index_1_udf(negResult.probability))
-    test.show()
+    # get_index_1_udf = udf(get_index_1, StringType())
+    # test = posResult.select(get_index_1_udf(posResult.probability))
+    # test.show()
+    # test = negResult.select(get_index_1_udf(negResult.probability))
+    # test.show()
 
     predict_pos_udf = udf(predict_pos, IntegerType())
     predict_neg_udf = udf(predict_neg, IntegerType())
@@ -194,7 +210,6 @@ def main(context):
     negResult.show()
 
     
-
 
 if __name__ == "__main__":
     conf = SparkConf().setAppName("CS143 Project 2B")
