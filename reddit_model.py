@@ -25,7 +25,7 @@ from pyspark.ml.evaluation import BinaryClassificationEvaluator
 from pyspark.ml.feature import CountVectorizer
 from pyspark.ml.feature import CountVectorizerModel
 
-
+from pyspark.sql import SQLContext
 
 def get_index_1(vec):
     return str(vec[1])
@@ -191,6 +191,7 @@ def main(context):
     posModel = CrossValidatorModel.load("project2/pos.model") # TODO DELETE BEFORE SUBMITTING
     negModel = CrossValidatorModel.load("project2/neg.model") # TODO DELETE BEFORE SUBMITTING
 
+    # Sanitize Task 8
     # Run the CountVectorizerModel on Task 8 relation
     # TODO: Consider not sampling if we have time:
     # SAMPLE 20% of the data
@@ -218,12 +219,14 @@ def main(context):
     result = result.select('created_utc', 'author_flair_text', 'link_id', 'id',\
                                  predict_pos_udf(result.probability_pos).alias('pos'),\
                                  predict_neg_udf(result.probability_neg).alias('neg'))
-
     result.show()
     # result.write.parquet("result_predictions.parquet")
 
+    #---------------------------------------------------------------------------
+    # TASK 10: Perform Analysis on the Predictions
     print("\n\n\n\nTASK 10......................\n\n\n\n") # TODO DELETE
-
+    # 1. Percentage of Comments that Were Positive/Negative Across ALL Submissions
+    
     # task_10_1 = result.groupBy('link_id').agg(sum('pos'), sum('neg'), count('*'))
     # task_10_1.show()
 
@@ -233,8 +236,10 @@ def main(context):
     # result.show()
     # result.write.parquet("result.parquet")
 
-    
 
+
+    sqlContext = SQLContext(context)
+    
 if __name__ == "__main__":
     conf = SparkConf().setAppName("CS143 Project 2B")
     conf = conf.setMaster("local[*]")
