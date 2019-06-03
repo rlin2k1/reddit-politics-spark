@@ -12,15 +12,27 @@ from __future__ import print_function
 from pyspark import SparkConf, SparkContext
 from pyspark.sql import SQLContext
 from pyspark.sql.functions import udf # Spark User Defined Function
-from pyspark.sql.types import ArrayType, StringType, IntegerType # UDF Return Types
+# UDF Return Types
+from pyspark.sql.types import ArrayType, StringType, IntegerType, BooleanType
 from cleantext import sanitize # Tokenizer
 import pandas as pd # Pandas DataFrame Printing
 
 from pyspark.ml.classification import LogisticRegression
-from pyspark.ml.tuning import CrossValidator, ParamGridBuilder 
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder
 from pyspark.ml.evaluation import BinaryClassificationEvaluator
-
 from pyspark.ml.feature import CountVectorizer
+
+import re # Regex
+# from pyspark.sql import functions as F # Assign Boolean Values to Functions
+
+def strip_t3(text):
+    """Strips first 3 characters of text."""
+    return text[3:]
+
+def sarcastic_or_quote(text):
+    """Returns true if string contains '/s' or starts with &gt"""
+    sarcastic_or_quote_match = re.compile(r'^&gt|\/s')
+    return not sarcastic_or_quote_match.search(text)
 
 # ---------------------------------------------------------------------------- #
 # Main Function
@@ -45,7 +57,7 @@ def main(context):
     # comments.show()
     submissions = context.read.parquet('submissions.parquet')
     # submissions.show()
-
+    
     #---------------------------------------------------------------------------
     # TASK 2
     labeled_comments = labeled_data.join(comments, comments.id == labeled_data.Input_id)
@@ -78,8 +90,8 @@ def main(context):
     pos = pos.withColumnRenamed("labeldjt", "label")
     pos = pos.replace(-1, 0)
     pos = pos.replace(-99, 0)
-
     pos.show()
+
     neg = sanitized_labeled_comments.select(sanitized_labeled_comments.features, sanitized_labeled_comments.labeldjt.cast(IntegerType()))
     neg = neg.withColumnRenamed("labeldjt", "label")
     neg = neg.replace(-1, 1)
@@ -116,7 +128,18 @@ def main(context):
     # Once we train the models, we don't want to do it again. We can save the models and load them again later.
     posModel.save("project2/pos.model")
     negModel.save("project2/neg.model")
+
+    # Positive Model: posModel
+    # Negative Model: negModel
     
+    #---------------------------------------------------------------------------
+    # TASK 8: Make Final Deliverable for Unseen Data - We don't need labeled_data anymore
+    strip_t3_udf = udf(strip_t3, StringType())
+    sarcastic_or_quote_udf = udf(sarcastic_or_quote, BooleanType())
+    # Get Unseen Data
+    final_deliverable = comments.select('created_utc', strip_t3_udf(comments.link_id).alias('link_id'), 'author_flair_text', 'id', 'body')\
+        .filter(sarcastic_or_quote_udf(comments['body'])) #F.when(comments["body"].rlike('^&gt|\/s'), False).otherwise(True))
+    final_deliverable.show()
 
 if __name__ == "__main__":
     conf = SparkConf().setAppName("CS143 Project 2B")
