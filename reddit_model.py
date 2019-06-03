@@ -28,6 +28,7 @@ from pyspark.ml.feature import CountVectorizerModel
 from pyspark.sql import SQLContext
 
 from pyspark.sql import functions as F
+import os
 
 def get_index_1(vec):
     return str(vec[1])
@@ -192,7 +193,7 @@ def main(context):
     sanitized_final_deliverable.show()
     #---------------------------------------------------------------------------
     # TASK 9
-
+    """
     print("\n\n\n\nTASK 9......................\n\n\n\n") # TODO DELETE
 
     # TODO DELETE
@@ -228,19 +229,20 @@ def main(context):
     result = result.select('created_utc', 'author_flair_text', 'link_id', 'id',\
                                  predict_pos_udf(result.probability_pos).alias('pos'),\
                                  predict_neg_udf(result.probability_neg).alias('neg'))
-    result.write.parquet("result.parquet")
     result.show()
+    result.write.parquet("result.parquet")
     # result_sample = result.sample(False,0.01,None)
-
+    """
     #---------------------------------------------------------------------------
     # TASK 10: Perform Analysis on the Predictions
-    print("\n\n\n\nTASK 10......................\n\n\n\n") # TODO DELETE
+    #print("\n\n\n\nTASK 10......................\n\n\n\n") # TODO DELETE
     # 1. Percentage of Comments that Were Positive/Negative Across ALL Submissionss
+    result = context.read.parquet("result.parquet")
     submissions_help = submissions.select('id', 'title')
     submissions_help = submissions_help.sort(submissions_help.id.desc())
     result = result.sort(result.link_id.desc())
     result = result.join(submissions_help, result.link_id == submissions_help.id)
-    result.write.parquet("result1.parquet")
+    # result.write.parquet("result1.parquet")
     result.show()
 
 
@@ -259,16 +261,19 @@ def main(context):
     # context.registerDataFrameAsTable(result, "result")
     # task_10_1 = context.sql("SELECT sum(pos), sum(neg), count(*) FROM result GROUP BY link_id")
     # task_10_1.write.csv('hello')
-    # result_sample.createOrReplaceTempView("result_sample")
-    # task_10_1 = context.sql("Select link_id, AVG(pos), AVG(neg) FROM result_sample GROUP BY link_id")
-    # task_10_1.show()
+    result.createOrReplaceTempView("result")
+    task_10_1 = context.sql("Select link_id, AVG(pos), AVG(neg) FROM result GROUP BY link_id")
+    task_10_1.show()
 
-    # task_10_2 = context.sql("SELECT FROM_UNIXTIME(created_utc), AVG(pos), AVG(neg) FROM result GROUP BY FROM_UNIXTIME(created_utc)")
+    task_10_1.write.csv("task_10_1.csv")
 
-    # task_10_3 = context.sql("SELECT AVG(pos), AVG(neg) FROM result GROUP BY ")
+    task_10_2 = context.sql("SELECT FROM_UNIXTIME(created_utc), AVG(pos), AVG(neg) FROM result GROUP BY FROM_UNIXTIME(created_utc)")
+    task_10_2.write.csv("task_10_2.csv")
+    context.registerFunction("check_state_udf", check_state, BooleanType())
+    
+    task_10_3 = context.sql("SELECT author_flair_text, AVG(pos), AVG(neg), COUNT(*) FROM result WHERE check_state_udf(author_flair_text) = True GROUP BY author_flair_text")
+    task_10_3.write.csv("task_10_3.csv")
 
-    # task_10_1 = result.groupBy('link_id').agg(sum('pos'), sum('neg'), count('*'))
-    # task_10_1.show()
 
 if __name__ == "__main__":
     conf = SparkConf().setAppName("CS143 Project 2B")
