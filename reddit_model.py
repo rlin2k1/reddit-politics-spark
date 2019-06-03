@@ -93,7 +93,7 @@ def main(context):
     # TASK 4
     sanitize_udf = udf(sanitize, ArrayType(StringType()))
 
-    """
+    """ # TODO uncomment
     #---------------------------------------------------------------------------
     # TASK 5
     sanitized_labeled_comments = labeled_comments.select('Input_id', 'labeldjt', sanitize_udf('body').alias('raw'))
@@ -157,58 +157,50 @@ def main(context):
 
     # Positive Model: posModel
     # Negative Model: negModel
-    """
+    """ # TODO uncomment
     #---------------------------------------------------------------------------
     # TASK 8: Make Final Deliverable for Unseen Data - We don't need labeled_data anymore
     strip_t3_udf = udf(strip_t3, StringType())
     sarcastic_or_quote_udf = udf(sarcastic_or_quote, BooleanType())
     # Get Unseen Data
-    final_deliverable = comments.select('created_utc', strip_t3_udf(comments.link_id).alias('link_id'), 'author_flair_text', 'id', 'body')\
+    sanitized_final_deliverable = comments.select('created_utc', strip_t3_udf(comments.link_id).alias('link_id'), 'author_flair_text', 'id', 'body', sanitize_udf('body').alias('raw'))\
         .filter(sarcastic_or_quote_udf(comments['body'])) #F.when(comments["body"].rlike('^&gt|\/s'), False).otherwise(True))
-    final_deliverable.show()
+    sanitized_final_deliverable.show()
 
     #---------------------------------------------------------------------------
     # TASK 9
 
     # TODO DELETE
-    model = CountVectorizerModel.load("count_vectorizer_model") # TODO DELETE
-    posModel = CrossValidatorModel.load("project2/pos.model") # TODO DELETE
-    negModel = CrossValidatorModel.load("project2/neg.model") # TODO DELETE
+    model = CountVectorizerModel.load("count_vectorizer_model") # TODO DELETE BEFORE SUBMITTING
+    posModel = CrossValidatorModel.load("project2/pos.model") # TODO DELETE BEFORE SUBMITTING
+    negModel = CrossValidatorModel.load("project2/neg.model") # TODO DELETE BEFORE SUBMITTING
 
-    # Sanitize Task 8
-    sanitized_final_deliverable = final_deliverable.select('created_utc', 'author_flair_text', 'link_id', 'id', sanitize_udf('body').alias('raw'))
+    # Run the CountVectorizerModel on Task 8 relation
     sanitized_final_deliverable = model.transform(sanitized_final_deliverable)
 
-    # Run classifier on unseen data
+    # Run classifier on unseen data to get positive labels
     posResult = posModel.transform(sanitized_final_deliverable)
-    negResult = negModel.transform(sanitized_final_deliverable)
+    # Rename the 3 new columns to prevent name conflicts
+    posResult = posResult.withColumnRenamed("probability", "probability_pos")\
+                         .withColumnRenamed("rawPrediction", "rawPrediction_pos")\
+                         .withColumnRenamed("prediction", "prediction_pos")
+    # Run the classifier on previous positive result to get negative labels too
+    result = negModel.transform(posResult)
+    # Rename the 3 new columns to make it easier to see which is which
+    result = result.withColumnRenamed("probability", "probability_neg")\
+                    .withColumnRenamed("rawPrediction", "rawPrediction_neg")\
+                    .withColumnRenamed("prediction", "prediction_neg")
 
-    # TODO Delete
-    # get_index_1_udf = udf(get_index_1, StringType())
-    # test = posResult.select(get_index_1_udf(posResult.probability))
-    # test.show()
-    # test = negResult.select(get_index_1_udf(negResult.probability))
-    # test.show()
-
+    # UDF functions for predicting label based on thresholds
     predict_pos_udf = udf(predict_pos, IntegerType())
     predict_neg_udf = udf(predict_neg, IntegerType())
 
     # Make predictions based on probability and threshold:
-    # posResult = posResult.select('created_utc', 'author_flair_text', 'link_id', 'id', 'raw', 'probability',\
-    #                              functions.when(float('probability'[1]) > 0.2, 1).otherwise(0).alias('pos'))
+    result = result.select('created_utc', 'author_flair_text', 'link_id', 'id', 'raw', 'probability_pos', 'probability_neg',\
+                                 predict_pos_udf(result.probability_pos).alias('pos'),\
+                                 predict_neg_udf(result.probability_neg).alias('neg'))
 
-    # negResult = negResult.select('created_utc', 'author_flair_text', 'link_id', 'id', 'raw', 'probability',\
-    #                              functions.when(float('probability'[1]) > 0.25, 1).otherwise(0).alias('neg'))
-
-    posResult = posResult.select('created_utc', 'author_flair_text', 'link_id', 'id', 'raw', 'probability',\
-                                 predict_pos_udf(posResult.probability).alias('pos'))
-
-    negResult = negResult.select('created_utc', 'author_flair_text', 'link_id', 'id', 'raw', 'probability',\
-                                 predict_neg_udf(negResult.probability).alias('neg'))
-
-    posResult.show()
-    negResult.show()
-
+    result.show()
     
 
 if __name__ == "__main__":
