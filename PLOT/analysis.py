@@ -40,7 +40,7 @@ PLOT 1: SENTIMENT OVER TIME (TIME SERIES PLOT)
 # Run this script from the main directory:
 # $ python3 PLOT/analysis.py
 # We need to standardize the csv filename or keep changing this line every time the csv is generated:
-ts = pd.read_csv("/home/cs143/project2/task_10_2.csv/part-00000-31bec1b8-1b1f-4dc3-86c5-d332bb4d9486-c000.csv") #, escapechar='\\'
+ts = pd.read_csv("/home/cs143/project2/task_10_2.csv/data.csv") #, escapechar='\\'
 # Remove erroneous row.
 ts = ts[ts['day'] != '2018-12-31']
 
@@ -62,7 +62,7 @@ PLOT 2: SENTIMENT BY STATE (POSITIVE AND NEGATIVE SEPARATELY)
 # You should use the FULL PATH to the file, just in case.
 
 # We need to standardize the csv filename or keep changing this line every time the csv is generated:
-state_data = pd.read_csv("/home/cs143/project2/task_10_3.csv/part-00000-905ef880-3bfd-461f-8929-1cdc489d7f99-c000.csv")
+state_data = pd.read_csv("/home/cs143/project2/task_10_3.csv/data.csv")
 
 """
 You also need to download the following files. Put them somewhere convenient:
@@ -88,7 +88,7 @@ pos_colors = {}
 statenames = []
 pos_cmap = plt.cm.Greens # use 'hot' colormap
 
-vmin = 0.3; vmax = 1 # set range.
+vmin = 0.3; vmax = 0.941 # set range.
 for shapedict in m.states_info:
     statename = shapedict['NAME']
     # skip DC and Puerto Rico.
