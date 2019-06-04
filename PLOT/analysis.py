@@ -42,17 +42,19 @@ PLOT 1: SENTIMENT OVER TIME (TIME SERIES PLOT)
 # $ python3 PLOT/analysis.py
 # We need to standardize the csv filename or keep changing this line every time the csv is generated:
 ts = pd.read_csv("/home/cs143/project2/task_10_2.csv/data.csv") #, escapechar='\\'
-# Remove erroneous row.
+# Remove erroneous row (because there is a 10 month gap between this and the last date)
 ts = ts[ts['day'] != '2018-12-31']
 
 
 ts.day = ts['day']
-ts = ts.sort_values('day')
+ts.day = pd.to_datetime(ts['day'], format='%Y-%m-%d')
 ts.set_index(['day'],inplace=True)
 
 ax = ts.plot(title="President Trump Sentiment on /r/politics Over Time",
             color=['green', 'red'], ylim=(.3, 1.05), figsize=(12,5))
 ax.plot()
+plt.xlabel('Date')
+plt.ylabel("Percent Sentiment")
 plt.savefig("plot1.png")
 
 """
@@ -202,7 +204,8 @@ ax1.scatter(story['submission_score'], story['pos_percentage'], s=10, c='b', mar
 ax1.scatter(story['submission_score'], story['neg_percentage'], s=10, c='r', marker="o", label='neg_percentage')
 plt.legend(loc='lower right');
 
-plt.xlabel('President Trump Sentiment by Submission Score')
+plt.title('President Trump Sentiment by Submission Score')
+plt.xlabel('Submission Score')
 plt.ylabel("Percent Sentiment")
 plt.savefig("plot5a.png")
 
@@ -226,6 +229,7 @@ ax1.scatter(story['comment_score'], story['pos_percentage'], s=10, c='b', marker
 ax1.scatter(story['comment_score'], story['neg_percentage'], s=10, c='r', marker="o", label='neg_percentage')
 plt.legend(loc='lower right');
 
-plt.xlabel('President Trump Sentiment by Comment Score')
+plt.title('President Trump Sentiment by Comment Score')
+plt.xlabel('Comment Score')
 plt.ylabel("Percent Sentiment")
 plt.savefig("plot5b.png")
