@@ -36,6 +36,7 @@ PLOT 1: SENTIMENT OVER TIME (TIME SERIES PLOT)
 # Assumes a file called time_data.csv that has columns
 # day, pos_percentage, neg_percentage. Use absolute path.
 
+#TODO order x-axis
 
 # Run this script from the main directory:
 # $ python3 PLOT/analysis.py
@@ -47,12 +48,13 @@ ts = ts[ts['day'] != '2018-12-31']
 plt.figure(figsize=(12,5))
 ts.day = ts['day']
 ts.set_index(['day'],inplace=True)
+ts.sort_values('day')
 
 ax = ts.plot(title="President Trump Sentiment on /r/politics Over Time",
         color=['green', 'red'],
        ylim=(0, 1.05))
 ax.plot()
-plt.savefig("part1.png")
+plt.savefig("time-plot.png")
 
 """
 PLOT 2: SENTIMENT BY STATE (POSITIVE AND NEGATIVE SEPARATELY)
@@ -103,7 +105,7 @@ for shapedict in m.states_info:
         pos = pos_data[statename]
         neg = neg_data[statename]
         pos_minus_neg = pos_minus_neg_data[statename]
-        print("pos_minus_neg == %f" % pos_minus_neg)
+        # print("pos_minus_neg == %f" % pos_minus_neg)
         # print("State: %s" % statename)
         # print("pos calc: %s" % str(pos_cmap(1. - np.sqrt(( pos - vmin_pos )/( vmax_pos - vmin_pos)))))
         # print("neg calc: %s" % str(neg_cmap(1. - np.sqrt(( neg - vmin_neg )/( vmax_neg - vmin_neg)))))
@@ -164,15 +166,16 @@ PLOT 5A: SENTIMENT BY STORY SCORE
 # biased.
 
 # Assumes a CSV file called submission_score.csv with the following coluns
-# submission_score, Positive, Negative
+# submission_score, pos_percentage, neg_percentage
 
-story = pd.read_csv("submission_score.csv")
+# We swapped A with B so this one is in directory B
+story = pd.read_csv("/home/cs143/project2/task_10_4B.csv/data.csv")
 plt.figure(figsize=(12,5))
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
 
-ax1.scatter(story['submission_score'], story['Positive'], s=10, c='b', marker="s", label='Positive')
-ax1.scatter(story['submission_score'], story['Negative'], s=10, c='r', marker="o", label='Negative')
+ax1.scatter(story['submission_score'], story['pos_percentage'], s=10, c='b', marker="s", label='pos_percentage')
+ax1.scatter(story['submission_score'], story['neg_percentage'], s=10, c='r', marker="o", label='neg_percentage')
 plt.legend(loc='lower right');
 
 plt.xlabel('President Trump Sentiment by Submission Score')
@@ -187,15 +190,16 @@ PLOT 5B: SENTIMENT BY COMMENT SCORE
 # biased.
 
 # Assumes a CSV file called comment_score.csv with the following columns
-# comment_score, Positive, Negative
+# comment_score, pos_percentage, neg_percentage
 
-story = pd.read_csv("comment_score.csv")
+# We swapped A with B so this one is in directory A
+story = pd.read_csv("/home/cs143/project2/task_10_4A.csv/data.csv")
 plt.figure(figsize=(12,5))
 fig = plt.figure()
 ax1 = fig.add_subplot(111)
 
-ax1.scatter(story['comment_score'], story['Positive'], s=10, c='b', marker="s", label='Positive')
-ax1.scatter(story['comment_score'], story['Negative'], s=10, c='r', marker="o", label='Negative')
+ax1.scatter(story['comment_score'], story['pos_percentage'], s=10, c='b', marker="s", label='pos_percentage')
+ax1.scatter(story['comment_score'], story['neg_percentage'], s=10, c='r', marker="o", label='neg_percentage')
 plt.legend(loc='lower right');
 
 plt.xlabel('President Trump Sentiment by Comment Score')
