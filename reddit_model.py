@@ -220,7 +220,7 @@ def main(context):
     task_10_1.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_1.csv")
 
     # 2. Percentage of Comments that Were Positive/Negative Across ALL Days
-    task_10_2 = context.sql("SELECT FROM_UNIXTIME(created_utc, 'Y-M-D') AS day, AVG(pos) AS pos_percentage, AVG(neg) AS neg_percentage FROM result GROUP BY day")
+    task_10_2 = context.sql("SELECT FROM_UNIXTIME(created_utc, 'Y-M-d') AS day, AVG(pos) AS pos_percentage, AVG(neg) AS neg_percentage FROM result GROUP BY day")
     task_10_2.show()
 
     task_10_2.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_2.csv")
