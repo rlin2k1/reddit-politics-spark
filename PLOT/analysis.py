@@ -45,16 +45,15 @@ ts = pd.read_csv("/home/cs143/project2/task_10_2.csv/data.csv") #, escapechar='\
 # Remove erroneous row.
 ts = ts[ts['day'] != '2018-12-31']
 
-plt.figure(figsize=(12,5))
+
 ts.day = ts['day']
-ts.sort_values('day', ascending=False)
+ts = ts.sort_values('day')
 ts.set_index(['day'],inplace=True)
 
 ax = ts.plot(title="President Trump Sentiment on /r/politics Over Time",
-        color=['green', 'red'],
-       ylim=(.3, 1.05))
+            color=['green', 'red'], ylim=(.3, 1.05), figsize=(12,5))
 ax.plot()
-plt.savefig("time-plot.png")
+plt.savefig("plot1.png")
 
 """
 PLOT 2: SENTIMENT BY STATE (POSITIVE AND NEGATIVE SEPARATELY)
