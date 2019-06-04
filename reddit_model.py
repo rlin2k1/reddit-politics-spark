@@ -90,8 +90,8 @@ def main(context):
     # submissions.show()
 
     #---------------------------------------------------------------------------
-    # TASK 3
-    # Code for task 3...
+    # TASK 2
+    # Code for task 2...
     labeled_comments = labeled_data.join(comments, comments.id == labeled_data.Input_id)
     labeled_comments = labeled_comments.select('Input_id', 'labeldjt', 'body')
     # labeled_comments.show()
@@ -118,7 +118,8 @@ def main(context):
 
     #---------------------------------------------------------------------------
     # TASK 6B
-    # Code for task 6B... - Labels: {1, 0, -1, -99}
+    # Code for task 6B...
+    # Labels: {1, 0, -1, -99}
     pos = sanitized_labeled_comments.select(sanitized_labeled_comments.features, sanitized_labeled_comments.labeldjt.cast(IntegerType()))
     pos = pos.withColumnRenamed("labeldjt", "label")
     pos = pos.replace(-1, 0)
@@ -134,7 +135,8 @@ def main(context):
 
     #---------------------------------------------------------------------------
     # TASK 7
-    # Code for task 7... : MACHINE LEARNING PORTION TO TRAIN MODELS - Initialize two logistic regression models.
+    # Code for task 7...
+    # ... MACHINE LEARNING PORTION TO TRAIN MODELS - Initialize two logistic regression models.
     # Replace labelCol with the column containing the label, and featuresCol with the column containing the features.
     poslr = LogisticRegression(labelCol="label", featuresCol="features", maxIter=10)
     neglr = LogisticRegression(labelCol="label", featuresCol="features", maxIter=10)
@@ -167,7 +169,8 @@ def main(context):
     
     #---------------------------------------------------------------------------
     # TASK 8
-    # Code for task 8...: Make Final Deliverable for Unseen Data - We don't need labeled_data anymore
+    # Code for task 8...
+    # ... Make Final Deliverable for Unseen Data - We don't need labeled_data anymore
     strip_t3_udf = udf(strip_t3, StringType())
     sarcastic_or_quote_udf = udf(sarcastic_or_quote, BooleanType())
     # Get Unseen Data
@@ -178,9 +181,10 @@ def main(context):
     #---------------------------------------------------------------------------
     # TASK 9
     # Code for task 9...
-    model = CountVectorizerModel.load("count_vectorizer_model") # TODO DELETE BEFORE SUBMITTING
-    posModel = CrossValidatorModel.load("project2/pos.model") # TODO DELETE BEFORE SUBMITTING
-    negModel = CrossValidatorModel.load("project2/neg.model") # TODO DELETE BEFORE SUBMITTING
+    # Load models that we saved on previous runs of this script
+    model = CountVectorizerModel.load("count_vectorizer_model")
+    posModel = CrossValidatorModel.load("project2/pos.model")
+    negModel = CrossValidatorModel.load("project2/neg.model")
 
     # Sanitize TASK 8 - Run the CountVectorizerModel on TASK 8 Relation
     sanitized_final_deliverable = model.transform(sanitized_final_deliverable)
@@ -212,7 +216,8 @@ def main(context):
     
     #---------------------------------------------------------------------------
     # TASK 10
-    # Code for task 10... : Perform Analysis on the Predictions
+    # Code for task 10...
+    # ... Perform Analysis on the Predictions
     result = context.read.parquet("result.parquet")
     # Need to JOIN First to Get TITLE of Post
 
