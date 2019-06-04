@@ -47,12 +47,12 @@ ts = ts[ts['day'] != '2018-12-31']
 
 plt.figure(figsize=(12,5))
 ts.day = ts['day']
+ts.sort_values('day', ascending=False)
 ts.set_index(['day'],inplace=True)
-ts.sort_values('day')
 
 ax = ts.plot(title="President Trump Sentiment on /r/politics Over Time",
         color=['green', 'red'],
-       ylim=(0, 1.05))
+       ylim=(.3, 1.05))
 ax.plot()
 plt.savefig("time-plot.png")
 
