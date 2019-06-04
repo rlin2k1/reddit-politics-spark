@@ -82,19 +82,34 @@ m = Basemap(llcrnrlon=-119, llcrnrlat=22, urcrnrlon=-64, urcrnrlat=49,
 shp_info = m.readshapefile('/home/cs143/project2/PLOT/st99_d00','states',drawbounds=True)  # No extension specified in path here.
 pos_data = dict(zip(state_data.state, state_data.pos_percentage))
 neg_data = dict(zip(state_data.state, state_data.neg_percentage))
+pos_minus_neg_data = dict(zip(state_data.state, state_data.pos_percentage - state_data.neg_percentage))
 
 # choose a color for each state based on sentiment.
 pos_colors = {}
+neg_colors = {}
+pos_minus_neg_colors = {}
 statenames = []
 pos_cmap = plt.cm.Greens # use 'hot' colormap
+neg_cmap = plt.cm.OrRd # use 'hot' colormap
+pos_minus_neg_cmap = plt.cm.Blues # use 'hot' colormap
 
-vmin = 0.3; vmax = 0.941 # set range.
+vmin_pos = 0.45; vmax_pos = 0.30 # set range for pos.
+vmin_neg = 0.95; vmax_neg = 0.75 # set range for neg.
+vmin_pos_minus_neg = -0.7; vmax_pos_minus_neg = -0.25 # set range for neg.
 for shapedict in m.states_info:
     statename = shapedict['NAME']
     # skip DC and Puerto Rico.
     if statename not in ['District of Columbia', 'Puerto Rico']:
         pos = pos_data[statename]
-        pos_colors[statename] = pos_cmap(1. - np.sqrt(( pos - vmin )/( vmax - vmin)))[:3]
+        neg = neg_data[statename]
+        pos_minus_neg = pos_minus_neg_data[statename]
+        print("pos_minus_neg == %f" % pos_minus_neg)
+        # print("State: %s" % statename)
+        # print("pos calc: %s" % str(pos_cmap(1. - np.sqrt(( pos - vmin_pos )/( vmax_pos - vmin_pos)))))
+        # print("neg calc: %s" % str(neg_cmap(1. - np.sqrt(( neg - vmin_neg )/( vmax_neg - vmin_neg)))))
+        pos_colors[statename] = pos_cmap(1. - np.sqrt(( pos - vmin_pos )/( vmax_pos - vmin_pos)))[:3] # 3 for r, g, b?
+        neg_colors[statename] = neg_cmap(1. - np.sqrt(( neg - vmin_neg )/( vmax_neg - vmin_neg)))[:3]
+        pos_minus_neg_colors[statename] = pos_minus_neg_cmap(1. - np.sqrt(( pos_minus_neg - vmin_pos_minus_neg )/( vmax_pos_minus_neg - vmin_pos_minus_neg)))[:3]
     statenames.append(statename)
 # cycle through state names, color each one.
 
@@ -107,9 +122,33 @@ for nshape, seg in enumerate(m.states):
         poly = Polygon(seg, facecolor=color, edgecolor=color)
         ax.add_patch(poly)
 plt.title('Positive Trump Sentiment Across the US')
-plt.savefig("mycoolmap.png")
+plt.savefig("positive-map.png")
+
+# NEGATIVE MAP
+ax = plt.gca() # get current axes instance
+for nshape, seg in enumerate(m.states):
+    # skip Puerto Rico and DC
+    if statenames[nshape] not in ['District of Columbia', 'Puerto Rico']:
+        color = rgb2hex(neg_colors[statenames[nshape]]) 
+        poly = Polygon(seg, facecolor=color, edgecolor=color)
+        ax.add_patch(poly)
+plt.title('Negative Trump Sentiment Across the US')
+plt.savefig("negative-map.png")
+
+# POS MINUS NEG MAP
+ax = plt.gca() # get current axes instance
+for nshape, seg in enumerate(m.states):
+    # skip Puerto Rico and DC
+    if statenames[nshape] not in ['District of Columbia', 'Puerto Rico']:
+        color = rgb2hex(pos_minus_neg_colors[statenames[nshape]]) 
+        poly = Polygon(seg, facecolor=color, edgecolor=color)
+        ax.add_patch(poly)
+plt.title('%Positive - %Negative Trump Sentiment Across the US')
+plt.savefig("pos-minus-neg-map.png")
 
 
+
+#TODO do extra comment
 # SOURCE: https://stackoverflow.com/questions/39742305/how-to-use-basemap-python-to-plot-us-with-50-states
 # (this misses Alaska and Hawaii. If you can get them to work, EXTRA CREDIT)
 
