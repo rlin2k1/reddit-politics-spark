@@ -78,8 +78,8 @@ wget "https://github.com/matplotlib/basemap/blob/master/examples/st99_d00.shx?ra
 The rename the files to get rid of the ?raw=true
 """
 
-# Lambert Conformal map of lower 48 states.
-m = Basemap(llcrnrlon=-119, llcrnrlat=22, urcrnrlon=-64, urcrnrlat=49,
+# Lambert Conformal map of lower 50 states.
+m = Basemap(llcrnrlon=-125, llcrnrlat=15, urcrnrlon=-64, urcrnrlat=49,
         projection='lcc', lat_1=33, lat_2=45, lon_0=-95)
 shp_info = m.readshapefile('/home/cs143/project2/PLOT/st99_d00','states',drawbounds=True)  # No extension specified in path here.
 pos_data = dict(zip(state_data.state, state_data.pos_percentage))
@@ -120,6 +120,15 @@ ax = plt.gca() # get current axes instance
 for nshape, seg in enumerate(m.states):
     # skip Puerto Rico and DC
     if statenames[nshape] not in ['District of Columbia', 'Puerto Rico']:
+        # EXTRA CREDIT
+        # SOURCE: https://stackoverflow.com/questions/39742305/how-to-use-basemap-python-to-plot-us-with-50-states
+        # Move Alaska + Hawaii next to mainland US by changing x,y coords
+        if statenames[nshape] == 'Hawaii':
+            seg = list(map(lambda args : (args[0] + 5000000, args[1]-1700000), seg))
+        if statenames[nshape] == 'Alaska':
+        # Shrink Alaska's size to 40% before translating
+            seg = list(map(lambda args : (0.40*args[0] + 900000, 0.40*args[1]-1350000), seg))
+
         color = rgb2hex(pos_colors[statenames[nshape]]) 
         poly = Polygon(seg, facecolor=color, edgecolor=color)
         ax.add_patch(poly)
@@ -131,6 +140,15 @@ ax = plt.gca() # get current axes instance
 for nshape, seg in enumerate(m.states):
     # skip Puerto Rico and DC
     if statenames[nshape] not in ['District of Columbia', 'Puerto Rico']:
+        # EXTRA CREDIT
+        # SOURCE: https://stackoverflow.com/questions/39742305/how-to-use-basemap-python-to-plot-us-with-50-states
+        # Move Alaska + Hawaii next to mainland US by changing x,y coords
+        if statenames[nshape] == 'Hawaii':
+            seg = list(map(lambda args : (args[0] + 5000000, args[1]-1700000), seg))
+        if statenames[nshape] == 'Alaska':
+        # Shrink Alaska's size to 40% before translating
+            seg = list(map(lambda args : (0.40*args[0] + 900000, 0.40*args[1]-1350000), seg))
+
         color = rgb2hex(neg_colors[statenames[nshape]]) 
         poly = Polygon(seg, facecolor=color, edgecolor=color)
         ax.add_patch(poly)
@@ -142,17 +160,21 @@ ax = plt.gca() # get current axes instance
 for nshape, seg in enumerate(m.states):
     # skip Puerto Rico and DC
     if statenames[nshape] not in ['District of Columbia', 'Puerto Rico']:
+        # EXTRA CREDIT
+        # SOURCE: https://stackoverflow.com/questions/39742305/how-to-use-basemap-python-to-plot-us-with-50-states
+        # Move Alaska + Hawaii next to mainland US by changing x,y coords
+        if statenames[nshape] == 'Hawaii':
+            seg = list(map(lambda args : (args[0] + 5000000, args[1]-1700000), seg))
+        if statenames[nshape] == 'Alaska':
+        # Shrink Alaska's size to 40% before translating
+            seg = list(map(lambda args : (0.40*args[0] + 900000, 0.40*args[1]-1350000), seg))
+      
         color = rgb2hex(pos_minus_neg_colors[statenames[nshape]]) 
         poly = Polygon(seg, facecolor=color, edgecolor=color)
         ax.add_patch(poly)
 plt.title('%Positive - %Negative Trump Sentiment Across the US')
 plt.savefig("pos-minus-neg-map.png")
 
-
-
-#TODO do extra comment
-# SOURCE: https://stackoverflow.com/questions/39742305/how-to-use-basemap-python-to-plot-us-with-50-states
-# (this misses Alaska and Hawaii. If you can get them to work, EXTRA CREDIT)
 
 """
 PART 4 SHOULD BE DONE IN SPARK
