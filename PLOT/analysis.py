@@ -84,34 +84,37 @@ m = Basemap(llcrnrlon=-125, llcrnrlat=15, urcrnrlon=-64, urcrnrlat=49,
 shp_info = m.readshapefile('/home/cs143/project2/PLOT/st99_d00','states',drawbounds=True)  # No extension specified in path here.
 pos_data = dict(zip(state_data.state, state_data.pos_percentage))
 neg_data = dict(zip(state_data.state, state_data.neg_percentage))
-pos_minus_neg_data = dict(zip(state_data.state, state_data.pos_percentage - state_data.neg_percentage))
+neg_minus_pos_data = dict(zip(state_data.state, state_data.neg_percentage - state_data.pos_percentage))
 
 # choose a color for each state based on sentiment.
 pos_colors = {}
 neg_colors = {}
-pos_minus_neg_colors = {}
+neg_minus_pos_colors = {}
 statenames = []
 pos_cmap = plt.cm.Greens # use 'hot' colormap
 neg_cmap = plt.cm.OrRd # use 'hot' colormap
-pos_minus_neg_cmap = plt.cm.Blues # use 'hot' colormap
+neg_minus_pos_cmap = plt.cm.Blues # use 'hot' colormap
 
-vmin_pos = 0.45; vmax_pos = 0.30 # set range for pos.
-vmin_neg = 0.95; vmax_neg = 0.75 # set range for neg.
-vmin_pos_minus_neg = -0.7; vmax_pos_minus_neg = -0.25 # set range for neg.
+vmin_pos = 0.30; vmax_pos = 0.45 # set range for pos.
+vmin_neg = 0.95; vmax_neg = 0.75 # set range for neg. This range is inversed on purpose.
+vmin_neg_minus_pos = 0.25; vmax_neg_minus_pos = 0.70 # set range for neg.
 for shapedict in m.states_info:
     statename = shapedict['NAME']
     # skip DC and Puerto Rico.
     if statename not in ['District of Columbia', 'Puerto Rico']:
         pos = pos_data[statename]
         neg = neg_data[statename]
-        pos_minus_neg = pos_minus_neg_data[statename]
-        # print("pos_minus_neg == %f" % pos_minus_neg)
+        neg_minus_pos = neg_minus_pos_data[statename]
+        # # Debugging stuff:
+        # print("neg_minus_pos == %f" % neg_minus_pos)
         # print("State: %s" % statename)
         # print("pos calc: %s" % str(pos_cmap(1. - np.sqrt(( pos - vmin_pos )/( vmax_pos - vmin_pos)))))
         # print("neg calc: %s" % str(neg_cmap(1. - np.sqrt(( neg - vmin_neg )/( vmax_neg - vmin_neg)))))
-        pos_colors[statename] = pos_cmap(1. - np.sqrt(( pos - vmin_pos )/( vmax_pos - vmin_pos)))[:3] # 3 for r, g, b?
-        neg_colors[statename] = neg_cmap(1. - np.sqrt(( neg - vmin_neg )/( vmax_neg - vmin_neg)))[:3]
-        pos_minus_neg_colors[statename] = pos_minus_neg_cmap(1. - np.sqrt(( pos_minus_neg - vmin_pos_minus_neg )/( vmax_pos_minus_neg - vmin_pos_minus_neg)))[:3]
+        
+        # Source for cmap calculations for pos and neg_minus_pos: https://piazza.com/class/jtvqvewgbap7od?cid=730
+        pos_colors[statename] = pos_cmap(( pos - vmin_pos )/( vmax_pos - vmin_pos))[:3] # [:3] for r, g, b
+        neg_colors[statename] = neg_cmap(1. - np.sqrt(( neg - vmin_neg )/( vmax_neg - vmin_neg)))[:3] # Didn't change the calc here on purpose
+        neg_minus_pos_colors[statename] = neg_minus_pos_cmap(( neg_minus_pos - vmin_neg_minus_pos )/( vmax_neg_minus_pos - vmin_neg_minus_pos))[:3]
     statenames.append(statename)
 # cycle through state names, color each one.
 
@@ -132,7 +135,7 @@ for nshape, seg in enumerate(m.states):
         color = rgb2hex(pos_colors[statenames[nshape]]) 
         poly = Polygon(seg, facecolor=color, edgecolor=color)
         ax.add_patch(poly)
-plt.title('Positive Trump Sentiment Across the US')
+plt.title('Positive Trump Sentiment Across the US (Including Alaska + Hawaii)')
 plt.savefig("positive-map.png")
 
 # NEGATIVE MAP
@@ -152,10 +155,10 @@ for nshape, seg in enumerate(m.states):
         color = rgb2hex(neg_colors[statenames[nshape]]) 
         poly = Polygon(seg, facecolor=color, edgecolor=color)
         ax.add_patch(poly)
-plt.title('Negative Trump Sentiment Across the US')
+plt.title('Negative Trump Sentiment Across the US (Including Alaska + Hawaii)')
 plt.savefig("negative-map.png")
 
-# POS MINUS NEG MAP
+# NEG MINUS POS MAP
 ax = plt.gca() # get current axes instance
 for nshape, seg in enumerate(m.states):
     # skip Puerto Rico and DC
@@ -169,11 +172,11 @@ for nshape, seg in enumerate(m.states):
         # Shrink Alaska's size to 40% before translating
             seg = list(map(lambda args : (0.40*args[0] + 900000, 0.40*args[1]-1350000), seg))
       
-        color = rgb2hex(pos_minus_neg_colors[statenames[nshape]]) 
+        color = rgb2hex(neg_minus_pos_colors[statenames[nshape]]) 
         poly = Polygon(seg, facecolor=color, edgecolor=color)
         ax.add_patch(poly)
-plt.title('%Positive - %Negative Trump Sentiment Across the US')
-plt.savefig("pos-minus-neg-map.png")
+plt.title('%Negative - %Positive Trump Sentiment Across the US (Including Alaska + Hawaii)', fontsize=9)
+plt.savefig("neg-minus-pos-map.png")
 
 
 """
