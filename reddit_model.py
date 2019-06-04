@@ -4,7 +4,6 @@ This module implements a Reddit Politics Sentiment Classifier using Spark mllib.
 Date Created:
     May 28th, 2019
 """
-
 # ---------------------------------------------------------------------------- #
 # Import Statements for the Necessary Packages
 # ---------------------------------------------------------------------------- #
@@ -89,7 +88,7 @@ def main(context):
     # comments.show()
     submissions = context.read.parquet('submissions.parquet')
     # submissions.show()
-    """
+
     #---------------------------------------------------------------------------
     # TASK 3
     # Code for task 3...
@@ -210,7 +209,7 @@ def main(context):
     
     result.write.parquet("result.parquet")
     # result.show()
-    """
+    
     #---------------------------------------------------------------------------
     # TASK 10
     # Code for task 10... : Perform Analysis on the Predictions
@@ -232,7 +231,7 @@ def main(context):
     task_10_1.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_1.csv")
 
     # 2. Percentage of Comments that Were Positive/Negative Across ALL Days
-    task_10_2 = context.sql("SELECT FROM_UNIXTIME(created_utc, 'Y-M-d') AS day, AVG(pos) AS pos_percentage, AVG(neg) AS neg_percentage FROM result GROUP BY day")
+    task_10_2 = context.sql("SELECT FROM_UNIXTIME(created_utc, 'Y-M-d') AS day, AVG(pos) AS pos_percentage, AVG(neg) AS neg_percentage FROM result GROUP BY day ORDER BY day asc")
     task_10_2.show()
 
     task_10_2.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_2.csv")
@@ -255,7 +254,6 @@ def main(context):
     task_10_4B.show()
 
     task_10_4B.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_4B.csv")
-
     #---------------------------------------------------------------------------
     
 if __name__ == "__main__":
