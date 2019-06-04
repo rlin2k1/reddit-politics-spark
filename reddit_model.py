@@ -72,6 +72,7 @@ def main(context):
     """Main Function takes a Spark SQL Context."""
     #---------------------------------------------------------------------------
     # TASK 1
+    # Code for task 1...
     # df = context.read.csv('labeled_data.csv')
     # df.write.parquet("labeled_data.parquet")
     # comments = context.read.json("comments-minimal.json.bz2") 
@@ -90,21 +91,25 @@ def main(context):
     # submissions.show()
     """
     #---------------------------------------------------------------------------
-    # TASK 2
+    # TASK 3
+    # Code for task 3...
     labeled_comments = labeled_data.join(comments, comments.id == labeled_data.Input_id)
     labeled_comments = labeled_comments.select('Input_id', 'labeldjt', 'body')
     # labeled_comments.show()
 
     #---------------------------------------------------------------------------
     # TASK 4
+    # Code for task 4...
     sanitize_udf = udf(sanitize, ArrayType(StringType()))
     
     #---------------------------------------------------------------------------
     # TASK 5
+    # Code for task 5...
     sanitized_labeled_comments = labeled_comments.select('Input_id', 'labeldjt', sanitize_udf('body').alias('raw'))
 
     #---------------------------------------------------------------------------
     # TASK 6A
+    # Code for task 6A...
     cv = CountVectorizer(binary=True, minDF=10.0, inputCol="raw", outputCol="features")
     model = cv.fit(sanitized_labeled_comments)
     sanitized_labeled_comments = model.transform(sanitized_labeled_comments)
@@ -113,7 +118,8 @@ def main(context):
     model.save(countVectorizerPath)
 
     #---------------------------------------------------------------------------
-    # TASK 6B - Labels: {1, 0, -1, -99}
+    # TASK 6B
+    # Code for task 6B... - Labels: {1, 0, -1, -99}
     pos = sanitized_labeled_comments.select(sanitized_labeled_comments.features, sanitized_labeled_comments.labeldjt.cast(IntegerType()))
     pos = pos.withColumnRenamed("labeldjt", "label")
     pos = pos.replace(-1, 0)
@@ -128,7 +134,8 @@ def main(context):
     # neg.show()
 
     #---------------------------------------------------------------------------
-    # TASK 7: MACHINE LEARNING PORTION TO TRAIN MODELS - Initialize two logistic regression models.
+    # TASK 7
+    # Code for task 7... : MACHINE LEARNING PORTION TO TRAIN MODELS - Initialize two logistic regression models.
     # Replace labelCol with the column containing the label, and featuresCol with the column containing the features.
     poslr = LogisticRegression(labelCol="label", featuresCol="features", maxIter=10)
     neglr = LogisticRegression(labelCol="label", featuresCol="features", maxIter=10)
@@ -160,7 +167,8 @@ def main(context):
     # Negative Model: negModel
     
     #---------------------------------------------------------------------------
-    # TASK 8: Make Final Deliverable for Unseen Data - We don't need labeled_data anymore
+    # TASK 8
+    # Code for task 8...: Make Final Deliverable for Unseen Data - We don't need labeled_data anymore
     strip_t3_udf = udf(strip_t3, StringType())
     sarcastic_or_quote_udf = udf(sarcastic_or_quote, BooleanType())
     # Get Unseen Data
@@ -170,6 +178,7 @@ def main(context):
 
     #---------------------------------------------------------------------------
     # TASK 9
+    # Code for task 9...
     model = CountVectorizerModel.load("count_vectorizer_model") # TODO DELETE BEFORE SUBMITTING
     posModel = CrossValidatorModel.load("project2/pos.model") # TODO DELETE BEFORE SUBMITTING
     negModel = CrossValidatorModel.load("project2/neg.model") # TODO DELETE BEFORE SUBMITTING
@@ -203,14 +212,17 @@ def main(context):
     # result.show()
     """
     #---------------------------------------------------------------------------
-    # TASK 10: Perform Analysis on the Predictions
+    # TASK 10
+    # Code for task 10... : Perform Analysis on the Predictions
     result = context.read.parquet("result.parquet")
     # Need to JOIN First to Get TITLE of Post
 
+    # print("ABOUT TO EXPLAIN --------------------------------------------------")
     submissions = submissions.select('id', 'title', submissions.score.alias('s_score'))
-    result = result.join(submissions, result.link_id == submissions.id)
+    result = result.join(submissions, result.link_id == submissions.id)# .explain()
     # result = result.drop('id')
     result.show()
+    # print("DONE EXPLAINING ---------------------------------------------------")
 
     context.registerDataFrameAsTable(result, "result")
     # 1. Percentage of Comments that Were Positive/Negative Across ALL Submissions
