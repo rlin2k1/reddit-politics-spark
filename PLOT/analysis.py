@@ -96,7 +96,15 @@ pos_cmap = plt.cm.Greens # use 'hot' colormap
 neg_cmap = plt.cm.OrRd # use 'hot' colormap
 neg_minus_pos_cmap = plt.cm.Blues # use 'hot' colormap
 
+# neg_colors[statename] = neg_cmap(( neg - vmin_neg )/( vmax_neg - vmin_neg))[:3]
+# vmin_neg = 0.60; vmax_neg = 1.00 # set range for neg. This range is inversed on purpose.
+
+
+
 vmin_pos = 0.30; vmax_pos = 0.45 # set range for pos.
+# # Original Negative Ranges (darker red shades):
+# vmin_neg = 0.60; vmax_neg = 1.00 # set range for neg.
+# Primary Negative Ranges:
 vmin_neg = 0.95; vmax_neg = 0.75 # set range for neg. This range is inversed on purpose.
 vmin_neg_minus_pos = 0.25; vmax_neg_minus_pos = 0.70 # set range for neg.
 for shapedict in m.states_info:
@@ -114,7 +122,10 @@ for shapedict in m.states_info:
         
         # Source for cmap calculations for pos and neg_minus_pos: https://piazza.com/class/jtvqvewgbap7od?cid=730
         pos_colors[statename] = pos_cmap(( pos - vmin_pos )/( vmax_pos - vmin_pos))[:3] # [:3] for r, g, b
-        neg_colors[statename] = neg_cmap(1. - np.sqrt(( neg - vmin_neg )/( vmax_neg - vmin_neg)))[:3] # Didn't change the calc here on purpose
+        # # Original Negative Map (Darker red shades matching stronger negative sentiments, but harder to differentiate):
+        # neg_colors[statename] = neg_cmap(( neg - vmin_neg )/( vmax_neg - vmin_neg))[:3]
+        # Primary Negative Map:
+        neg_colors[statename] = neg_cmap(1. - np.sqrt(( neg - vmin_neg )/( vmax_neg - vmin_neg)))
         neg_minus_pos_colors[statename] = neg_minus_pos_cmap(( neg_minus_pos - vmin_neg_minus_pos )/( vmax_neg_minus_pos - vmin_neg_minus_pos))[:3]
     statenames.append(statename)
 # cycle through state names, color each one.
