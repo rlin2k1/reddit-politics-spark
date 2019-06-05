@@ -36,8 +36,6 @@ PLOT 1: SENTIMENT OVER TIME (TIME SERIES PLOT)
 # Assumes a file called time_data.csv that has columns
 # day, pos_percentage, neg_percentage. Use absolute path.
 
-#TODO order x-axis
-
 # Run this script from the main directory:
 # $ python3 PLOT/analysis.py
 # We need to standardize the csv filename or keep changing this line every time the csv is generated:
@@ -244,3 +242,28 @@ plt.title('President Trump Sentiment by Comment Score')
 plt.xlabel('Comment Score')
 plt.ylabel("Percent Sentiment")
 plt.savefig("plot5b.png")
+
+
+
+
+"""
+EXTRA CREDIT PLOT: SENTIMENT BY GILDED AMOUNT
+"""
+
+# Assumes a CSV file called data.csv with the following columns
+# gilded, pos_percentage, neg_percentage
+
+gilded = pd.read_csv("/home/cs143/project2/task_10_extra_credit.csv/data.csv")
+plt.figure(figsize=(12,5))
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+
+ax1.scatter(gilded['gilded'], gilded['pos_percentage'], s=10, c='b', marker="s", label='pos_percentage')
+ax1.scatter(gilded['gilded'], gilded['neg_percentage'], s=10, c='r', marker="o", label='neg_percentage')
+plt.legend(loc='center right');
+
+plt.title('President Trump Sentiment vs. Number of Reddit Medals on Comments', fontsize=9)
+plt.xlabel('Amount Gilded (Number of Reddit Medals, e.g. Gold)')
+plt.ylabel("Percent Sentiment")
+plt.savefig("plot_extra.png")
+

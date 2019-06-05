@@ -174,7 +174,7 @@ def main(context):
     strip_t3_udf = udf(strip_t3, StringType())
     sarcastic_or_quote_udf = udf(sarcastic_or_quote, BooleanType())
     # Get Unseen Data
-    sanitized_final_deliverable = comments.select('created_utc', strip_t3_udf(comments.link_id).alias('link_id'), 'author_flair_text', 'id', 'body', sanitize_udf('body').alias('raw'), comments.score.alias('c_score'))\
+    sanitized_final_deliverable = comments.select('created_utc', strip_t3_udf(comments.link_id).alias('link_id'), 'author_flair_text', 'id', 'body', 'gilded', sanitize_udf('body').alias('raw'), comments.score.alias('c_score'))\
         .filter(sarcastic_or_quote_udf(comments['body'])) #F.when(comments["body"].rlike('^&gt|\/s'), False).otherwise(True))
     # sanitized_final_deliverable.show()
 
@@ -207,58 +207,70 @@ def main(context):
     predict_neg_udf = udf(predict_neg, IntegerType())
 
     # Make predictions based on probability and threshold:
-    result = result.select('created_utc', 'author_flair_text', 'link_id', 'id', 'c_score', \
+    result = result.select('created_utc', 'author_flair_text', 'link_id', 'id', 'c_score', 'gilded',\
                                  predict_pos_udf(result.probability_pos).alias('pos'),\
                                  predict_neg_udf(result.probability_neg).alias('neg'))
     
     result.write.parquet("result.parquet")
     # result.show()
     
+    
+    
+
     #---------------------------------------------------------------------------
     # TASK 10
     # Code for task 10...
     # ... Perform Analysis on the Predictions
     result = context.read.parquet("result.parquet")
-    # Need to JOIN First to Get TITLE of Post
-
-    # print("ABOUT TO EXPLAIN --------------------------------------------------")
     submissions = submissions.select('id', 'title', submissions.score.alias('s_score'))
     result = result.join(submissions, result.link_id == submissions.id)# .explain()
-    # result = result.drop('id')
     result.show()
-    # print("DONE EXPLAINING ---------------------------------------------------")
-
     context.registerDataFrameAsTable(result, "result")
+
+    
+
     # 1. Percentage of Comments that Were Positive/Negative Across ALL Submissions
     task_10_1 = context.sql("SELECT title, AVG(pos) AS pos_percentage, AVG(neg) AS neg_percentage FROM result GROUP BY title")
     task_10_1.show()
 
-    task_10_1.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_1.csv")
+    task_10_1.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("2task_10_1.csv")
 
     # 2. Percentage of Comments that Were Positive/Negative Across ALL Days
     task_10_2 = context.sql("SELECT FROM_UNIXTIME(created_utc, 'Y-M-d') AS day, AVG(pos) AS pos_percentage, AVG(neg) AS neg_percentage FROM result GROUP BY day ORDER BY day asc")
     task_10_2.show()
 
-    task_10_2.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_2.csv")
+    task_10_2.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("2task_10_2.csv")
 
     # 3. Percentage of Comments that Were Positive/Negative Across ALL States
     context.registerFunction("check_state_udf", check_state, BooleanType())
     task_10_3 = context.sql("SELECT author_flair_text AS state, AVG(pos) AS pos_percentage, AVG(neg) AS neg_percentage FROM result WHERE check_state_udf(author_flair_text) = True GROUP BY state")
     task_10_3.show()
 
-    task_10_3.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_3.csv")
+    task_10_3.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("2task_10_3.csv")
     
     # 4A. Percentage of Comments that Were Positive/Negative Across ALL Comments
     task_10_4A = context.sql("SELECT c_score AS comment_score, AVG(pos) AS pos_percentage, AVG(neg) AS neg_percentage FROM result GROUP BY comment_score")
     task_10_4A.show()
 
-    task_10_4A.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_4A.csv")
+    task_10_4A.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("2task_10_4A.csv")
 
     # 4B. Percentage of Comments that Were Positive/Negative Across ALL Story Scores
     task_10_4B = context.sql("SELECT s_score AS submission_score, AVG(pos) AS pos_percentage, AVG(neg) AS neg_percentage FROM result GROUP BY submission_score")
     task_10_4B.show()
 
-    task_10_4B.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_4B.csv")
+    task_10_4B.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("2task_10_4B.csv")
+    
+    
+
+    #---------------------------------------------------------------------------
+    # Extra Credit (Task 10)
+    # 1. Percentage of Comments that Were Positive/Negative For Gilded and Non-Gilded Comments
+    task_10_extra_credit = context.sql("SELECT gilded, AVG(pos) AS pos_percentage, AVG(neg) AS neg_percentage FROM result GROUP BY gilded")
+    task_10_extra_credit.show()
+
+    task_10_extra_credit.repartition(1).write.format("com.databricks.spark.csv").option("header", "true").save("task_10_extra_credit.csv")
+
+
     #---------------------------------------------------------------------------
     
 if __name__ == "__main__":
