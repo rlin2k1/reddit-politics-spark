@@ -2,7 +2,7 @@
 Reddit Politics Sentiment Classifier using Spark mllib
 
 - Alaska and Hawaii got dropped off the map, so we fixed Hawaii and Alaska by adding in the Polygons and shading the correct percentage colors on average comment sentiments about President Trump. We included this in the report.
-- We also computed other dimensions that made sense on the data that we had. These are included in the report as well. Mainly, we saw the trend between Guilded and positive/negative percentages on sentiment about President Trump. We saw that  
+- We also computed other dimensions that made sense on the data that we had. These are included in the report as well. Mainly, we saw the trend between Guilded and positive/negative percentages on sentiment about President Trump.
 ----------------------------------------------------------------------------------------------------------------------------
 Citations:
 
